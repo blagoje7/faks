@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skripta: predavanja primenjena na K1 i K2</title>
+</head>
+<body>
+<style>
+  :root {
+    --papir: #f6f4f9;
+    --povrsina: #ffffff;
+    --povrsina-2: #ece8f2;
+    --tinta: #1a1424;
+    --priguseno: #635a70;
+    --linija: #ded7e6;
+    --teorija: #5b2e8c;
+    --praksa: #a8541a;
+    --senka: rgba(26, 20, 36, 0.07);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --papir: #0f0b15;
+      --povrsina: #191322;
+      --povrsina-2: #221a2d;
+      --tinta: #e9e3f0;
+      --priguseno: #9b90a8;
+      --linija: #2e2439;
+      --teorija: #b79be8;
+      --praksa: #e0a055;
+      --senka: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --papir: #0f0b15;
+    --povrsina: #191322;
+    --povrsina-2: #221a2d;
+    --tinta: #e9e3f0;
+    --priguseno: #9b90a8;
+    --linija: #2e2439;
+    --teorija: #b79be8;
+    --praksa: #e0a055;
+    --senka: rgba(0, 0, 0, 0.45);
+  }
+
+  :root[data-theme="light"] {
+    --papir: #f6f4f9;
+    --povrsina: #ffffff;
+    --povrsina-2: #ece8f2;
+    --tinta: #1a1424;
+    --priguseno: #635a70;
+    --linija: #ded7e6;
+    --teorija: #5b2e8c;
+    --praksa: #a8541a;
+    --senka: rgba(26, 20, 36, 0.07);
+  }
+
+  :root {
+    --naslovi: Cambria, "Palatino Linotype", Georgia, serif;
+    --telo: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: Consolas, "Cascadia Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  body {
+    margin: 0;
+    background: var(--papir);
+    color: var(--tinta);
+    font-family: var(--telo);
+    font-size: 16.5px;
+    line-height: 1.68;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stranica {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---------- Naslovna ---------- */
+
+  .naslovna {
+    border-bottom: 2px solid var(--tinta);
+    padding-bottom: 2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .oznaka {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--teorija);
+    margin: 0 0 1.2rem;
+  }
+
+  .naslovna h1 {
+    font-family: var(--naslovi);
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0 0 1rem;
+    max-width: 21ch;
+  }
+
+  .uvodni {
+    font-size: 1.04rem;
+    color: var(--priguseno);
+    max-width: 64ch;
+    margin: 0 0 1rem;
+  }
+
+  /* ---------- Sadržaj ---------- */
+
+  .sadrzaj {
+    background: var(--povrsina);
+    border: 1px solid var(--linija);
+    border-radius: 4px;
+    padding: 1.4rem 1.6rem;
+    margin-bottom: 3rem;
+  }
+
+  .sadrzaj h2 {
+    font-family: var(--telo);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--priguseno);
+    margin: 0 0 1rem;
+  }
+
+  .sadrzaj ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.92rem;
+  }
+
+  .sadrzaj li {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr) 8rem;
+    gap: 0.6rem;
+    padding: 0.35rem 0;
+    border-top: 1px solid var(--linija);
+    align-items: baseline;
+  }
+
+  .sadrzaj li:first-child {
+    border-top: none;
+  }
+
+  .sadrzaj .br {
+    font-family: var(--mono);
+    color: var(--teorija);
+    font-size: 0.82rem;
+  }
+
+  .sadrzaj .pred {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--priguseno);
+    text-align: right;
+  }
+
+  .sadrzaj a {
+    color: var(--tinta);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+
+  .sadrzaj a:hover {
+    border-bottom-color: var(--teorija);
+  }
+
+  /* ---------- Poglavlja ---------- */
+
+  .poglavlje {
+    padding-top: 2.6rem;
+    margin-top: 2.6rem;
+    border-top: 1px solid var(--linija);
+    scroll-margin-top: 1rem;
+  }
+
+  .poglavlje:first-of-type {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .zaglavlje-poglavlja {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.1rem;
+  }
+
+  .znacka {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teorija);
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    padding: 0.15rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  h2 {
+    font-family: var(--naslovi);
+    font-weight: 700;
+    font-size: clamp(1.45rem, 3vw, 1.85rem);
+    line-height: 1.22;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  h3 {
+    font-family: var(--telo);
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 2rem 0 0.6rem;
+  }
+
+  p {
+    max-width: 68ch;
+    margin: 0 0 1.1rem;
+  }
+
+  ul,
+  ol.tekst {
+    max-width: 68ch;
+    padding-left: 1.25rem;
+    margin: 0 0 1.1rem;
+  }
+
+  li {
+    margin-bottom: 0.45rem;
+  }
+
+  ul li::marker,
+  ol.tekst li::marker {
+    color: var(--teorija);
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.84em;
+    background: var(--povrsina-2);
+    padding: 0.12em 0.36em;
+    border-radius: 3px;
+  }
+
+  /* ---------- Blok: u vašem radu ---------- */
+
+  .primena {
+    background: var(--povrsina);
+    border: 1px solid var(--linija);
+    border-left: 3px solid var(--praksa);
+    border-radius: 0 4px 4px 0;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+  }
+
+  .primena > :last-child {
+    margin-bottom: 0;
+  }
+
+  .primena-naslov {
+    font-family: var(--mono);
+    font-size: 0.67rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--praksa);
+    margin: 0 0 0.7rem;
+    font-weight: 700;
+  }
+
+  .primena p {
+    max-width: 66ch;
+  }
+
+  .primena pre {
+    border-left-color: var(--praksa);
+  }
+
+  .blok {
+    background: var(--povrsina);
+    border: 1px solid var(--linija);
+    border-left: 3px solid var(--teorija);
+    border-radius: 0 4px 4px 0;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+  }
+
+  .blok > :last-child {
+    margin-bottom: 0;
+  }
+
+  .blok-naslov {
+    font-family: var(--mono);
+    font-size: 0.67rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--teorija);
+    margin: 0 0 0.7rem;
+    font-weight: 700;
+  }
+
+  .blok.upozorenje {
+    border-left-color: #b91c1c;
+  }
+
+  .blok.upozorenje .blok-naslov {
+    color: #b91c1c;
+  }
+
+  :root[data-theme="dark"] .blok.upozorenje,
+  :root[data-theme="dark"] .blok.upozorenje .blok-naslov {
+    border-left-color: #f08a8a;
+    color: #f08a8a;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .blok.upozorenje {
+      border-left-color: #f08a8a;
+    }
+    :root:not([data-theme="light"]) .blok.upozorenje .blok-naslov {
+      color: #f08a8a;
+    }
+  }
+
+  /* ---------- Kod ---------- */
+
+  pre {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    line-height: 1.58;
+    background: var(--povrsina-2);
+    border-left: 3px solid var(--teorija);
+    border-radius: 0 4px 4px 0;
+    padding: 0.95rem 1.15rem;
+    margin: 1.2rem 0;
+    overflow-x: auto;
+    tab-size: 4;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  .naslov-koda {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--priguseno);
+    margin: 1.3rem 0 -0.9rem;
+  }
+
+  .naslov-koda + pre {
+    margin-top: 0.6rem;
+  }
+
+  /* ---------- Tabele ---------- */
+
+  .okvir-tabele {
+    overflow-x: auto;
+    margin: 1.4rem 0;
+    border: 1px solid var(--linija);
+    border-radius: 4px;
+    background: var(--povrsina);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 32rem;
+    font-size: 0.87rem;
+  }
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.65rem 0.95rem;
+    border-bottom: 1px solid var(--linija);
+    vertical-align: top;
+  }
+
+  thead th {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--priguseno);
+    font-weight: 400;
+    background: var(--povrsina-2);
+    white-space: nowrap;
+  }
+
+  tbody th {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child th,
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  td.mono,
+  th.mono {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+
+  .t-teorija {
+    color: var(--teorija);
+    font-weight: 600;
+  }
+
+  .t-praksa {
+    color: var(--praksa);
+    font-weight: 600;
+  }
+
+  /* ---------- Figura ---------- */
+
+  figure {
+    margin: 1.8rem 0;
+    background: var(--povrsina);
+    border: 1px solid var(--linija);
+    border-radius: 4px;
+    padding: 1.4rem 1.2rem 1rem;
+    box-shadow: 0 1px 3px var(--senka);
+  }
+
+  .okvir-svg {
+    overflow-x: auto;
+  }
+
+  figure svg {
+    display: block;
+    width: 100%;
+    min-width: 40rem;
+    height: auto;
+    color: var(--tinta);
+  }
+
+  figcaption {
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--linija);
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: var(--priguseno);
+    max-width: 70ch;
+  }
+
+  figcaption b {
+    color: var(--tinta);
+    font-weight: 600;
+  }
+
+  .f-teorija {
+    fill: var(--teorija);
+  }
+
+  .s-teorija {
+    stroke: var(--teorija);
+  }
+
+  .f-praksa {
+    fill: var(--praksa);
+  }
+
+  .s-praksa {
+    stroke: var(--praksa);
+  }
+
+  /* ---------- Podnožje ---------- */
+
+  .podnozje {
+    margin-top: 3.5rem;
+    padding-top: 1.4rem;
+    border-top: 2px solid var(--tinta);
+    font-family: var(--mono);
+    font-size: 0.73rem;
+    color: var(--priguseno);
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 40rem) {
+    .sadrzaj li {
+      grid-template-columns: 1.7rem minmax(0, 1fr);
+    }
+
+    .sadrzaj .pred {
+      grid-column: 2;
+      text-align: left;
+      margin-top: -0.2rem;
+    }
+  }
+</style>
+
+<div class="stranica">
+  <header class="naslovna">
+    <p class="oznaka">Veb programiranje &middot; prof. dr Vidan Marković</p>
+    <h1>Teorija sa predavanja, primenjena na K1 i K2</h1>
+    <p class="uvodni">
+      Skripta prati gradivo iz devetnaest prezentacija sa predavanja i uz svaki
+      pojam pokazuje gde se on nalazi u vašem rešenju — evidenciji narudžbina.
+      Ljubičasto je ono <span class="t-teorija">što kaže predavanje</span>,
+      narandžasto <span class="t-praksa">gde je to u vašem kodu</span>.
+    </p>
+  </header>
+
+  <nav class="sadrzaj">
+    <h2>Sadržaj</h2>
+    <ol>
+      <li><span class="br">1</span><a href="#p1">Troslojna arhitektura</a><span class="pred">pred. 1</span></li>
+      <li><span class="br">2</span><a href="#p2">HTTP protokol</a><span class="pred">pred. 4</span></li>
+      <li><span class="br">3</span><a href="#p3">MVC obrazac — i zašto zadatak traži MVP</a><span class="pred">pred. 1</span></li>
+      <li><span class="br">4</span><a href="#p4">Dinamičko generisanje sadržaja</a><span class="pred">pred. 5</span></li>
+      <li><span class="br">5</span><a href="#p5">Veb server i Flask</a><span class="pred">pred. 6, 7</span></li>
+      <li><span class="br">6</span><a href="#p6">ORM i SQLAlchemy</a><span class="pred">pred. 8</span></li>
+      <li><span class="br">7</span><a href="#p7">REST</a><span class="pred">pred. 9</span></li>
+      <li><span class="br">8</span><a href="#p8">AJAX i asinhroni pozivi</a><span class="pred">pred. 16</span></li>
+      <li><span class="br">9</span><a href="#p9">Vue i MVVM</a><span class="pred">pred. 14</span></li>
+      <li><span class="br">10</span><a href="#p10">Sve na jednom mestu</a><span class="pred">rekapitulacija</span></li>
+    </ol>
+  </nav>
+
+  <!-- 1 -->
+  <section class="poglavlje" id="p1">
+    <div class="zaglavlje-poglavlja">
+      <span class="znacka">Predavanje 1</span>
+      <h2>Troslojna arhitektura</h2>
+    </div>
+
+    <p>
+      Prvi ishod predmeta, doslovno sa treće strane prvog predavanja, glasi:
+      <em>„Poznaje osnovne principe troslojne arhitekture Veb aplikacija”</em>.
+      To je okosnica celog kursa i najverovatnije prva stvar koja će se pitati.
+    </p>
+
+    <p>Predavanje navodi tri komponente:</p>
+
+    <ol class="tekst">
+      <li><strong>Klijent</strong> — prikuplja unos i prikazuje podatke korisniku</li>
+      <li><strong>Aplikativni server</strong> — poslovna logika</li>
+      <li><strong>Perzistencija podataka</strong> — trajno čuvanje</li>
+    </ol>
+
+    <p>
+      Predavanje razlikuje jednoslojnu, dvoslojnu, troslojnu i višeslojnu
+      arhitekturu. Razlika nije u broju računara nego u broju
+      <em>odvojenih odgovornosti</em>: u dvoslojnoj klijent razgovara direktno
+      sa bazom, u troslojnoj između njih stoji sloj koji drži pravila.
+    </p>
+
+    <figure>
+      <div class="okvir-svg">
+        <svg viewBox="0 0 900 420" role="img"
+          aria-label="Troslojna arhitektura rešenja: Vue klijent, Flask aplikativni server i MySQL perzistencija, sa oznakama predavanja koja pokrivaju svaki sloj i svaku granicu">
+          <defs>
+            <marker id="st" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <!-- KLIJENT -->
+          <rect x="150" y="18" width="600" height="82" rx="4"
+            fill="none" stroke="currentColor" stroke-width="1.6" />
+          <text x="174" y="46" font-family="Consolas, monospace" font-size="10"
+            letter-spacing="1.5" fill="currentColor" opacity="0.6">SLOJ 1 &#183; KLIJENT</text>
+          <text x="174" y="70" font-size="15" font-weight="600" fill="currentColor"
+            font-family="Segoe UI, sans-serif">Vue 3 &#183; jednostranična aplikacija</text>
+          <text x="174" y="90" font-family="Consolas, monospace" font-size="11"
+            fill="currentColor" opacity="0.7">frontend/src/components/</text>
+          <text x="726" y="46" font-family="Consolas, monospace" font-size="10"
+            text-anchor="end" class="f-teorija" font-weight="700">PRED. 10&#8211;16</text>
+          <text x="726" y="70" font-size="11" text-anchor="end" fill="currentColor"
+            opacity="0.6" font-family="Segoe UI, sans-serif">prikuplja unos, prikazuje podatke</text>
+
+          <!-- granica 1 -->
+          <line x1="300" y1="100" x2="300" y2="164" stroke="currentColor"
+            stroke-width="1.6" marker-end="url(#st)" />
+          <line x1="600" y1="164" x2="600" y2="100" stroke="currentColor"
+            stroke-width="1.6" marker-end="url(#st)" />
+          <text x="450" y="126" font-family="Consolas, monospace" font-size="11.5"
+            text-anchor="middle" fill="currentColor" font-weight="700">HTTP + JSON</text>
+          <text x="450" y="148" font-family="Consolas, monospace" font-size="10"
+            text-anchor="middle" class="f-teorija" font-weight="700">PRED. 4, 9, 16</text>
+
+          <!-- APLIKATIVNI SERVER -->
+          <rect x="150" y="166" width="600" height="82" rx="4"
+            fill="none" stroke="currentColor" stroke-width="1.6" />
+          <text x="174" y="194" font-family="Consolas, monospace" font-size="10"
+            letter-spacing="1.5" fill="currentColor" opacity="0.6">SLOJ 2 &#183; APLIKATIVNI SERVER</text>
+          <text x="174" y="218" font-size="15" font-weight="600" fill="currentColor"
+            font-family="Segoe UI, sans-serif">Flask &#183; REST API</text>
+          <text x="174" y="238" font-family="Consolas, monospace" font-size="11"
+            fill="currentColor" opacity="0.7">backend/presenters/</text>
+          <text x="726" y="194" font-family="Consolas, monospace" font-size="10"
+            text-anchor="end" class="f-teorija" font-weight="700">PRED. 6, 7, 9</text>
+          <text x="726" y="218" font-size="11" text-anchor="end" fill="currentColor"
+            opacity="0.6" font-family="Segoe UI, sans-serif">poslovna logika</text>
+
+          <!-- granica 2 -->
+          <line x1="300" y1="248" x2="300" y2="312" stroke="currentColor"
+            stroke-width="1.6" marker-end="url(#st)" />
+          <line x1="600" y1="312" x2="600" y2="248" stroke="currentColor"
+            stroke-width="1.6" marker-end="url(#st)" />
+          <text x="450" y="274" font-family="Consolas, monospace" font-size="11.5"
+            text-anchor="middle" fill="currentColor" font-weight="700">SQL preko ORM-a</text>
+          <text x="450" y="296" font-family="Consolas, monospace" font-size="10"
+            text-anchor="middle" class="f-teorija" font-weight="700">PRED. 8</text>
+
+          <!-- PERZISTENCIJA -->
+          <rect x="150" y="314" width="600" height="82" rx="4"
+            fill="none" stroke="currentColor" stroke-width="1.6" />
+          <text x="174" y="342" font-family="Consolas, monospace" font-size="10"
+            letter-spacing="1.5" fill="currentColor" opacity="0.6">SLOJ 3 &#183; PERZISTENCIJA</text>
+          <text x="174" y="366" font-size="15" font-weight="600" fill="currentColor"
+            font-family="Segoe UI, sans-serif">MySQL 8 &#183; InnoDB</text>
+          <text x="174" y="386" font-family="Consolas, monospace" font-size="11"
+            fill="currentColor" opacity="0.7">k2_narudzbine</text>
+          <text x="726" y="342" font-family="Consolas, monospace" font-size="10"
+            text-anchor="end" class="f-teorija" font-weight="700">PRED. 1</text>
+          <text x="726" y="366" font-size="11" text-anchor="end" fill="currentColor"
+            opacity="0.6" font-family="Segoe UI, sans-serif">trajno čuvanje</text>
+        </svg>
+      </div>
+      <figcaption>
+        Ista slika služi kao mapa gradiva: svaki sloj i svaka granica nose broj
+        predavanja koje ih pokriva. <b>Granice su ono što se ispituje</b> —
+        između sloja 1 i 2 ide HTTP sa JSON telom, između sloja 2 i 3 SQL koji
+        umesto vas piše ORM.
+      </figcaption>
+    </figure>
+
+    <div class="primena">
+      <p class="primena-naslov">U vašem radu</p>
+      <p>
+        Sva tri sloja su fizički odvojena i mogu se zameniti nezavisno. Klijent
+        ne zna da MySQL postoji — nikada ne vidi SQL, samo JSON. Baza ne zna da
+        Vue postoji. Kad na odbrani pitaju „gde je poslovna logika”, odgovor je
+        <strong>sloj 2</strong>, i to je ono što troslojnu arhitekturu razlikuje
+        od dvoslojne.
+      </p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="poglavlje" id="p2">
+    <div class="zaglavlje-poglavlja">
+      <span class="znacka">Predavanje 4</span>
+      <h2>HTTP protokol</h2>
+    </div>
+
+    <p>
+      HTTP je protokol aplikativnog sloja. Predavanje ga obrađuje kroz
+      „anatomiju” zahteva i odgovora: oba imaju <strong>zaglavlje</strong> i
+      <strong>telo</strong>, a zaglavlje govori koji je protokol korišćen, da li
+      je zahtev uspeo i koja vrsta sadržaja se nalazi u telu.
+    </p>
+
+    <h3>Metode</h3>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Metoda</th>
+            <th scope="col">Kako je definiše predavanje</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row" class="mono">GET</th>
+            <td>Preuzimanje informacija sa servera. „Zahtevi koji koriste metod GET treba samo da pribavljaju podatke, a nikako ne treba da ih menjaju.”</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">HEAD</th>
+            <td>Kao GET, ali bez tela — vraća se samo statusna linija i zaglavlje</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">POST</th>
+            <td>Slanje podataka serveru. „Moćniji od GET” jer istovremeno traži nešto i šalje podatke</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">PUT</th>
+            <td>Zahtev serveru da smesti priložene podatke na navedenu adresu</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">DELETE</th>
+            <td>Brisanje resursa</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Statusni kodovi</h3>
+
+    <p>
+      Statusni kod je trocifren broj, a <strong>prva cifra određuje jednu od pet
+      klasa odgovora</strong>. Predavanje 9 izdvaja one koji se u praksi najviše
+      koriste: <code>2XX</code> uspešno, <code>3XX</code> redirekcija,
+      <code>4XX</code> i <code>5XX</code> greške.
+    </p>
+
+    <div class="primena">
+      <p class="primena-naslov">U vašem radu</p>
+      <p>
+        Ovako izgleda pravi par zahtev–odgovor iz vaše aplikacije, sa istim
+        delovima koje predavanje naziva anatomijom:
+      </p>
+      <pre><code>POST /api/stavke HTTP/1.1          &#8592; startna linija
+Host: localhost:5000               &#8596; zaglavlja
+Content-Type: application/json
+
+{"narudzbina_id": 4,               &#8596; telo
+ "proizvod_id": 2,
+ "kolicina": 3}</code></pre>
+      <pre><code>HTTP/1.1 201 Created               &#8592; statusna linija
+Content-Type: application/json     &#8596; zaglavlja
+
+{"id": 7, "kolicina": 3,           &#8596; telo
+ "cena_po_komadu": 3450.00,
+ "iznos": 10350.00}</code></pre>
+      <p>
+        Obratite pažnju šta u telu zahteva <strong>ne stoji</strong>: cena.
+        Klijent je ne šalje jer je ne sme određivati — server je čita iz
+        šifarnika i tek je onda vraća u odgovoru.
+      </p>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="poglavlje" id="p3">
+    <div class="zaglavlje-poglavlja">
+      <span class="znacka">Predavanje 1</span>
+      <h2>MVC obrazac — i zašto zadatak traži MVP</h2>
+    </div>
+
+    <div class="blok upozorenje">
+      <p class="blok-naslov">Pročitajte ovo pre odbrane K1</p>
+      <p>
+        U svih devetnaest prezentacija reči <strong>„MVP”</strong> i
+        <strong>„Presenter”</strong> ne pojavljuju se nijednom. Predavanja
+        obrađuju <strong>MVC</strong> (predavanje 1) i <strong>MVVM</strong>
+        (predavanje 14, uz Vue). Zadatak za K1 traži MVP.
+      </p>
+      <p>
+        To znači da most između onoga što je predavano i onoga što branite
+        morate sami da prebacite — i bolje je da to uradite u prve dve rečenice
+        izlaganja nego da čekate pitanje.
+      </p>
+    </div>
+
+    <h3>Šta kaže predavanje</h3>
+
+    <p>Osma i osamdeseta strana prvog predavanja definišu uloge ovako:</p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Uloga</th>
+            <th scope="col">Odgovornost po predavanju</th>
+            <th scope="col">Tehnologija</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Model</th>
+            <td>Podaci aplikacije</td>
+            <td>MySQL; JS/Python objekti sa atributima</td>
+          </tr>
+          <tr>
+            <th scope="row">View</th>
+            <td>Izgled aplikacije <em>(look)</em></td>
+            <td>HTML i CSS</td>
+          </tr>
+          <tr>
+            <th scope="row">Controller</th>
+            <td>Ponašanje aplikacije <em>(feel)</em>: upravljanje modelima, komunikacija sa serverom, kontrola izgleda, obrada interakcije sa korisnikom</td>
+            <td>Flask; DOM osluškivači događaja</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Predavanje na strani 93 kaže i ovo: <em>„Pogled konsultuje model za
+      podatke i prezentuje podatke za korisnika.”</em> Ta jedna rečenica je
+      tačno mesto gde se MVC i MVP razilaze.
+    </p>
+
+    <h3>Razlika koju branite</h3>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Pitanje</th>
+            <th scope="col">MVC (predavanje)</th>
+            <th scope="col">MVP (vaš rad)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Da li View čita model</th>
+            <td>Da — „pogled konsultuje model za podatke”</td>
+            <td class="t-praksa">Ne, nikada</td>
+          </tr>
+          <tr>
+            <th scope="row">Ko dovodi podatke do prikaza</th>
+            <td>View ih sam uzima iz modela</td>
+            <td class="t-praksa">Presenter mu ih prosledi</td>
+          </tr>
+          <tr>
+            <th scope="row">Uloga posrednika</th>
+            <td>Controller osluškuje promene i obaveštava</td>
+            <td class="t-praksa">Presenter je jedini put između View-a i modela</td>
+          </tr>
+          <tr>
+            <th scope="row">Testiranje bez interfejsa</th>
+            <td>Otežano</td>
+            <td class="t-praksa">Lako — View se zameni stubom</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      MVP je, dakle, <strong>stroža varijanta iste ideje</strong>. Oba obrasca
+      dele model na tri uloge i oba imaju iste prednosti koje predavanje nabraja
+      — organizacija koda, modularnost, fleksibilnost, paralelni razvoj,
+      ponovna upotrebljivost. Razlika je samo u tome što MVP zabranjuje jednu
+      vezu koju MVC dozvoljava: View → Model.
+    </p>
+
+    <div class="primena">
+      <p class="primena-naslov">U vašem radu</p>
+      <p>
+        Ta zabrana kod vas nije stvar discipline nego fizike: između View-a i
+        Presentera stoji <strong>granica procesa</strong>. Vue komponenta se
+        izvršava u pretraživaču i nema nikakav način da dohvati MySQL — može
+        samo da pošalje HTTP zahtev.
+      </p>
+      <div class="okvir-tabele">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Uloga</th>
+              <th scope="col">Gde je u vašem kodu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Model</th>
+              <td class="mono">K2/backend/models.py</td>
+            </tr>
+            <tr>
+              <th scope="row">Presenter</th>
+              <td class="mono">K2/backend/presenters/</td>
+            </tr>
+            <tr>
+              <th scope="row">View</th>
+              <td class="mono">K2/frontend/src/components/</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Rečenica kojom to zatvarate: <em>„Predavanja obrađuju MVC, gde pogled
+        konsultuje model. Ja sam izabrao MVP jer u njemu ta veza ne postoji —
+        kod mene je i fizički nemoguća, jer između pogleda i modela stoji HTTP
+        granica.”</em>
+      </p>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="poglavlje" id="p4">
+    <div class="zaglavlje-poglavlja">
+      <span class="znacka">Predavanje 5</span>
+      <h2>Dinamičko generisanje sadržaja</h2>
+    </div>
+
+    <p>
+      Templejt procesor je program koji <strong>kombinuje predefinisani šablon
+      stranice sa modelom podataka</strong> kako bi generisao rezultujući
+      dokument. Predavanje razlaže svaki templejt sistem na tri elementa i
+      izričito ih mapira na MVC:
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Element</th>
+            <th scope="col">Uloga u MVC</th>
+            <th scope="col">Šta je</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Model podataka</th>
+            <td>Model</td>
+            <td>Relaciona baza, JSON, XML, CSV datoteke</td>
+          </tr>
+          <tr>
+            <th scope="row">Šablon stranice</th>
+            <td>View</td>
+            <td>HTML sa mestima za dinamičke delove</td>
+          </tr>
+          <tr>
+            <th scope="row">Procesor šablona</th>
+            <td>Controller</td>
+            <td>Spaja model i šablon, izvršava naredbe</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Vrste templejt sistema</h3>
+
+    <p>
+      Ovo je podela koju vredi znati napamet, jer direktno objašnjava izbor koji
+      ste napravili:
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Vrsta</th>
+            <th scope="col">Gde se obrada dešava</th>
+            <th scope="col">Primer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Serverski</th>
+            <td>Na serverskoj strani</td>
+            <td>Jinja</td>
+          </tr>
+          <tr>
+            <th scope="row" class="t-praksa">Klijentski</th>
+            <td class="t-praksa">U pretraživaču</td>
+            <td class="t-praksa">JavaScript, Vue</td>
+          </tr>
+          <tr>
+            <th scope="row">Posrednički</th>
+            <td>Između servera i klijenta</td>
+            <td>&mdash;</td>
+          </tr>
+          <tr>
+            <th scope="row">Eksterni</th>
+            <td>Odvojeno, offline, pa se šalje serveru</td>
+            <td>&mdash;</td>
+          </tr>
+          <tr>
+            <th scope="row">Distribuirani</th>
+            <td>Na više servera</td>
+            <td>&mdash;</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="primena">
+      <p class="primena-naslov">U vašem radu</p>
+      <p>
+        Vaša aplikacija koristi <strong>klijentski templejt sistem</strong>, i
+        to je pojam koji predavanje imenuje. Šablon je Vue komponenta, model
+        podataka stiže kao JSON iz REST API-ja, a procesor je Vue u pretraživaču.
+      </p>
+      <p class="naslov-koda">NarudzbinaDetalji.vue &#8212; šablon</p>
+      <pre><code>&lt;tr v-for="stavka in narudzbina.stavke" :key="stavka.id"&gt;
+  &lt;td&gt;{{ stavka.proizvod_naziv }}&lt;/td&gt;
+  &lt;td class="desno"&gt;{{ dinari(stavka.iznos) }}&lt;/td&gt;
+&lt;/tr&gt;</code></pre>
+      <p>
+        Zanimljivo je da primer na sedmoj strani predavanja koristi baš Vue kao
+        ilustraciju šablona sa <code>{{ }}</code> zapisom — dakle isti zapis
+        koji je i u vašem kodu.
+      </p>
+      <p>
+        <strong>Ako pitaju zašto niste koristili Jinja:</strong> zato što bi
+        serverski templejt sistem vratio gotov HTML, a K2 traži REST API koji
+        vraća podatke. Server koji vraća JSON ne generiše prikaz — prikaz
+        generiše klijent.
+      </p>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="poglavlje" id="p5">
+    <div class="zaglavlje-poglavlja">
+      <span class="znacka">Predavanja 6 i 7</span>
+      <h2>Veb server i Flask</h2>
+    </div>
+
+    <p>
+      Flask je mikro radni okvir koji HTTP zahtev pretvara u poziv Python
+      funkcije. Predavanja obrađuju rutiranje, varijable rute, HTTP metode,
+      <code>request</code> objekat, <code>url_for</code>, Jinja šablone, kolačiće
+      i sesije.
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Pojam</th>
+            <th scope="col">Čemu služi</th>
+            <th scope="col">U vašem radu</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row" class="mono">@app.route</th>
+            <td>Vezuje putanju za funkciju</td>
+            <td class="mono t-praksa">@stavka_bp.post("")</td>
+          </tr>
+          <tr>
+            <th scope="row">Varijable rute</th>
+            <td>Deo putanje kao argument funkcije</td>
+            <td class="mono t-praksa">/&lt;int:stavka_id&gt;</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">methods=[...]</th>
+            <td>Koje HTTP metode ruta prihvata</td>
+            <td class="mono t-praksa">.get .post .put .delete</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">request</th>
+            <td>Podaci tekućeg zahteva</td>
+            <td class="mono t-praksa">request.get_json(), request.args</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">jsonify</th>
+            <td>Pravi JSON odgovor sa ispravnim zaglavljem</td>
+            <td class="mono t-praksa">u svakom presenteru</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">render_template</th>
+            <td>Generiše HTML iz Jinja šablona</td>
+            <td>ne koristi se &#8212; klijent generiše prikaz</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="primena">
+      <p class="primena-naslov">U vašem radu</p>
+      <p>
+        Predavanje 7 pokazuje sve rute u jednom fajlu. Vaše rešenje ih deli po
+        resursima pomoću <strong>blueprint-a</strong> — imenovane grupe ruta sa
+        zajedničkim prefiksom. U MVP podeli je jedan blueprint jedan Presenter.
+      </p>
+      <p class="naslov-koda">backend/app.py</p>
+      <pre><code>app.register_blueprint(proizvod_bp)
+app.register_blueprint(narudzbina_bp)
+app.register_blueprint(stavka_bp)</code></pre>
+      <p class="naslov-koda">backend/presenters/stavka_presenter.py</p>
+      <pre><code>@stavka_bp.post("")
+def dodaj_stavku():
+    vrednosti, greske = procitaj_podatke(request.get_json(silent=True) or {})
+    if greske:
+        return jsonify({"greske": greske}), 400
+
+    stavka = Stavka(**vrednosti)
+    db.session.add(stavka)
+    db.session.commit()
+
+    return jsonify(stavka.u_recnik()), 201</code></pre>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="poglavlje" id="p6">
+    <div class="zaglavlje-poglavlja">
+      <span class="znacka">Predavanje 8</span>
+      <h2>ORM i SQLAlchemy</h2>
+    </div>
+
+    <p>
+      Predavanje definiše ORM ovako: <em>„Objektno relaciono mapiranje je
+      tehnika koja mapira parametre objekta na strukturu RDBMS tabele. ORM API
+      obezbeđuje način izvršavanja CRUD operacija bez pisanja sirovih SQL
+      naredbi.”</em>
+    </p>
+
+    <p>
+      Razlog je praktičan i predavanje ga navodi: korišćenje sirovog SQL-a za
+      CRUD operacije može biti otežano, a SQLAlchemy daje punu funkcionalnost i
+      fleksibilnost SQL-a bez pisanja upita rukom.
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">U Pythonu</th>
+            <th scope="col">U bazi</th>
+            <th scope="col">Primer iz vašeg rada</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Klasa nasleđuje <code>db.Model</code></td>
+            <td>Tabela</td>
+            <td class="mono t-praksa">Stavka &#8594; stavka</td>
+          </tr>
+          <tr>
+            <td>Instanca</td>
+            <td>Red</td>
+            <td class="mono t-praksa">Stavka(id=7)</td>
+          </tr>
+          <tr>
+            <td><code>db.Column</code></td>
+            <td>Kolona</td>
+            <td class="mono t-praksa">kolicina = db.Column(db.Integer)</td>
+          </tr>
+          <tr>
+            <td><code>db.relationship</code></td>
+            <td>Strani ključ</td>
+            <td class="mono t-praksa">narudzbina.stavke</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Sesija</h3>
+
+    <p>
+      Predavanje navodi: <em>„SQLAlchemy Session objekat upravlja svim
+      persistenca operacijama za ORM objekte”</em>, uz metode
+      <code>db.session.add()</code> i <code>db.session.delete()</code>. Sesija
+      nije samo veza sa bazom nego <strong>evidencija izmena</strong> — prati šta
+      ste dodali, izmenili ili obrisali i tek na <code>commit()</code> to
+      izvršava kao jednu transakciju.
+    </p>
+
+    <div class="primena">
+      <p class="primena-naslov">U vašem radu</p>
+      <p>
+        Zahvaljujući vezi, <code>narudzbina.stavke</code> je obična Python
+        lista iako iza nje stoji <code>SELECT</code>. Zato se izvedeni podaci
+        pišu kao običan Python, bez ijednog upita:
+      </p>
+      <p class="naslov-koda">backend/models.py</p>
+      <pre><code>@property
+def ukupan_iznos(self):
+    return sum((stavka.iznos for stavka in self.stavke), Decimal("0.00"))</code></pre>
+      <p>
+        Sesija kao jedna transakcija je i razlog zašto brisanje narudžbine sa
+        pet stavki nije šest nezavisnih radnji nego jedna: ili prođe sve, ili
+        ništa.
+      </p>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="poglavlje" id="p7">
+    <div class="zaglavlje-poglavlja">
+      <span class="znacka">Predavanje 9</span>
+      <h2>REST</h2>
+    </div>
+
+    <p>
+      Ovo je najvažnije predavanje za K2 — zadatak za drugi kolokvijum doslovno
+      glasi „Izrada jednostavne RESTful Web aplikacije”.
+    </p>
+
+    <h3>Odakle REST dolazi</h3>
+
+    <p>
+      Predavanje razlikuje tri vrste Veb API-ja po tome šta klijent radi:
+    </p>
+
+    <ul>
+      <li><strong>RPC</strong> — klijenti pozivaju funkcije na serveru</li>
+      <li><strong>RMI</strong> — klijenti pozivaju metode objekata servera</li>
+      <li><strong>REST</strong> — klijenti vrše <strong>CRUD operacije nad resursima</strong> servera</li>
+    </ul>
+
+    <p>
+      REST je opisao Roy Thomas Fielding u doktorskoj disertaciji 2000. godine
+      kao arhitekturu komunikacije distribuiranih sistema. Njegove karakteristike
+      date su kao <strong>ograničenja</strong>:
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Ograničenje</th>
+            <th scope="col">Šta znači</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">1</th>
+            <td>Client-Server</td>
+            <td>Razdvajanje odgovornosti; server i klijent se menjaju nezavisno</td>
+          </tr>
+          <tr>
+            <th scope="row">2</th>
+            <td>Stateless</td>
+            <td>Server ne čuva memoriju o prethodnim aktivnostima klijenta; odgovornost za stanje je na klijentu</td>
+          </tr>
+          <tr>
+            <th scope="row">3</th>
+            <td>Cache</td>
+            <td>Odgovor sam kaže da li je <em>cacheable</em> ili ne</td>
+          </tr>
+          <tr>
+            <th scope="row">4</th>
+            <td>Uniform Interface</td>
+            <td>Standardan format, URI za identifikaciju resursa, metapodaci uz resurs</td>
+          </tr>
+          <tr>
+            <th scope="row">5</th>
+            <td>Layered System</td>
+            <td>Klijent ne zna da li je povezan sa krajnjim serverom ili međuserverom</td>
+          </tr>
+          <tr>
+            <th scope="row">6</th>
+            <td>Code-On-Demand</td>
+            <td>Server sme proširiti funkcionalnost klijenta slanjem izvršnog koda</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>HTTP kao zajednički interfejs</h3>
+
+    <p>Predavanje ovo daje kao jasnu tabelu preslikavanja:</p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">CRUD</th>
+            <th scope="col">HTTP metoda</th>
+            <th scope="col">U vašem API-ju</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Create</th>
+            <td class="mono">POST (or PUT)</td>
+            <td class="mono t-praksa">POST /api/stavke</td>
+          </tr>
+          <tr>
+            <th scope="row">Read</th>
+            <td class="mono">GET</td>
+            <td class="mono t-praksa">GET /api/narudzbine/4</td>
+          </tr>
+          <tr>
+            <th scope="row">Update</th>
+            <td class="mono">PUT (or PATCH)</td>
+            <td class="mono t-praksa">PUT /api/stavke/7</td>
+          </tr>
+          <tr>
+            <th scope="row">Delete</th>
+            <td class="mono">DELETE</td>
+            <td class="mono t-praksa">DELETE /api/narudzbine/4</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Uz to: zaglavlja <code>Content-Type</code> i <code>Accept</code> određuju
+      format podataka, a statusni kodovi javljaju uspeh ili grešku. Predavanje
+      izdvaja <code>200</code> opšti uspeh, <code>201</code> uspeh POST metode,
+      <code>400</code> zahtev koji server ne može obraditi, <code>404</code>
+      resurs nije nađen, <code>204</code> uspeh bez sadržaja.
+    </p>
+
+    <div class="blok">
+      <p class="blok-naslov">Rečenica koju vredi zapamtiti</p>
+      <p>
+        <em>„REST je stil arhitekture, ne skup pravila. U praksi se može
+        realizovati na različite načine.”</em> — predavanje 9, strana 20. Ovo je
+        koristan odgovor kad god neko traži da nešto bude „po pravilima”.
+      </p>
+    </div>
+
+    <h3>Dizajn API-ja i resursi</h3>
+
+    <p>
+      Osnovno pravilo je da URI imenuje <strong>resurs</strong>, a metoda
+      određuje radnju. Predavanje pokazuje niz oblika za isti server sa
+      korisnicima — <code>GET /users</code>, <code>GET /users/2</code>,
+      <code>GET /users/2/pets</code>, <code>GET /users?gender=female&amp;age=18</code>
+      — i zaključuje: <em>„Što je moguće lakše za korišćenje!”</em>
+    </p>
+
+    <div class="primena">
+      <p class="primena-naslov">U vašem radu</p>
+      <p>
+        Vaše putanje prate isti oblik. Ugnježdena putanja čini master-detail
+        relaciju vidljivom već u adresi:
+      </p>
+      <pre><code>GET    /api/narudzbine                 zbirka
+GET    /api/narudzbine/4               jedan resurs
+GET    /api/narudzbine/4/stavke        podređeni resursi
+GET    /api/narudzbine?status=potvrdjena&amp;smer=desc
+POST   /api/stavke                     kreiranje
+PUT    /api/stavke/7                   izmena
+DELETE /api/narudzbine/4               brisanje</code></pre>
+      <p>
+        Statusni kodovi su iskorišćeni po značenju, uključujući i
+        <code>409 Conflict</code> koji predavanje ne pominje — vraća se kada se
+        pokuša brisanje proizvoda koji stoji na nekoj stavci.
+      </p>
+    </div>
+
+    <div class="blok upozorenje">
+      <p class="blok-naslov">Razlika koju treba znati objasniti</p>
+      <p>
+        Predavanje pokazuje <strong>Flask-RESTful</strong> proširenje sa
+        <code>Resource</code> klasama, <code>reqparse</code> i
+        <code>marshal_with</code>. Vaše rešenje koristi <strong>običan Flask sa
+        blueprint-ima i <code>jsonify</code></strong>.
+      </p>
+      <p>
+        Odgovor ako se pita: oba pristupa daju isti REST interfejs; razlika je u
+        alatu, ne u arhitekturi. Blueprint po resursu je izabran zato što se
+        jedan blueprint poklapa sa jednim Presenterom u MVP podeli, a validacija
+        po poljima daje bolju poruku o grešci nego <code>reqparse</code>.
+        Predavanje samo kaže da se REST „u praksi može realizovati na različite
+        načine”.
+      </p>
+    </div>
+
+    <h3>Prednosti REST-a</h3>
+
+    <ul>
+      <li><strong>Skalabilnost</strong> — server ne čuva informacije o prethodnim zahtevima, keširanje smanjuje suvišnu komunikaciju</li>
+      <li><strong>Fleksibilnost</strong> — klijent i server su međusobno nezavisni</li>
+      <li><strong>Nezavisnost</strong> — tehnologije implementacije mogu biti različite i menjati se nezavisno</li>
+    </ul>
+  </section>
+
+  <!-- 8 -->
+  <section class="poglavlje" id="p8">
+    <div class="zaglavlje-poglavlja">
+      <span class="znacka">Predavanje 16</span>
+      <h2>AJAX i asinhroni pozivi</h2>
+    </div>
+
+    <p>
+      AJAX (Asynchronous JavaScript And XML) omogućava ažuriranje veb strane
+      <strong>bez ponovnog učitavanja</strong> — slanje zahteva i primanje
+      odgovora nakon što je strana već učitana. Predavanje odmah upozorava da je
+      naziv pomalo pogrešan: osim XML-a koristi se i čist tekst, a najčešće
+      <strong>JSON</strong>.
+    </p>
+
+    <p>Predavanje razlaže izvršavanje na sedam koraka:</p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Korak po predavanju</th>
+            <th scope="col">Gde je u vašem kodu</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">1</th>
+            <td>Događaj se desi na stranici</td>
+            <td class="mono t-praksa">@submit.prevent="posalji"</td>
+          </tr>
+          <tr>
+            <th scope="row">2</th>
+            <td>JavaScript kreira objekat za zahtev</td>
+            <td class="mono t-praksa">api.js &#8594; fetch()</td>
+          </tr>
+          <tr>
+            <th scope="row">3</th>
+            <td>Objekat šalje zahtev veb serveru</td>
+            <td class="mono t-praksa">POST /api/stavke</td>
+          </tr>
+          <tr>
+            <th scope="row">4</th>
+            <td>Server obrađuje zahtev</td>
+            <td class="mono t-praksa">stavka_presenter.dodaj_stavku()</td>
+          </tr>
+          <tr>
+            <th scope="row">5</th>
+            <td>Server šalje odgovor</td>
+            <td class="mono t-praksa">jsonify(...), 201</td>
+          </tr>
+          <tr>
+            <th scope="row">6</th>
+            <td>Odgovor čita JavaScript kod</td>
+            <td class="mono t-praksa">await odgovor.json()</td>
+          </tr>
+          <tr>
+            <th scope="row">7</th>
+            <td>JavaScript ažurira stranu</td>
+            <td class="mono t-praksa">router.push(...) i reaktivnost</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="primena">
+      <p class="primena-naslov">U vašem radu</p>
+      <p>
+        Predavanje koristi <code>XMLHttpRequest</code> sa
+        <code>onreadystatechange</code> atributom. Vaše rešenje koristi
+        <code>fetch</code> sa <code>async/await</code> — to je savremeni naslednik
+        iste tehnike, sa istih sedam koraka, samo bez ručnog praćenja stanja.
+      </p>
+      <p class="naslov-koda">frontend/src/api.js</p>
+      <pre><code>odgovor = await fetch(OSNOVA + putanja, {
+  headers: { "Content-Type": "application/json" },
+  ...opcije,
+});
+
+const telo = await odgovor.json().catch(() =&gt; null);
+
+if (!odgovor.ok) {
+  throw new ApiGreska(telo.poruka, odgovor.status, telo.greske);
+}</code></pre>
+      <p>
+        <strong>Ako pitaju zašto niste koristili XMLHttpRequest:</strong> zato
+        što <code>fetch</code> vraća <em>promise</em>, pa se sedmi korak piše kao
+        običan niz naredbi umesto kao funkcija povratnog poziva. Ista tehnika,
+        čitljiviji zapis.
+      </p>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="poglavlje" id="p9">
+    <div class="zaglavlje-poglavlja">
+      <span class="znacka">Predavanje 14</span>
+      <h2>Vue i MVVM</h2>
+    </div>
+
+    <p>
+      Vue.js je progresivan front-end okvir koji koristi
+      <strong>MVVM</strong> — <em>model-view-view-model</em> — obrazac za
+      razdvajanje programske logike od kontrola korisničkog interfejsa.
+      Predavanje ga opisuje ovako: <em>„Model sadrži logiku, prikaz uključuje
+      UI, a model prikaza je mesto gde njih dvoje komuniciraju, omogućavajući
+      dvosmerno povezivanje.”</em>
+    </p>
+
+    <h3>Karakteristike koje predavanje izdvaja</h3>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Pojam</th>
+            <th scope="col">Šta je</th>
+            <th scope="col">U vašem radu</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Deklarativno prikazivanje</th>
+            <td>Opisuje se kako prikaz izgleda za dato stanje, ne kako se menja</td>
+            <td class="mono t-praksa">v-for, v-if, {{ }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Virtuelni DOM</th>
+            <td>Replika DOM-a u JS strukturama; promene se ne odražavaju direktno na DOM</td>
+            <td>Vue sam računa razliku</td>
+          </tr>
+          <tr>
+            <th scope="row">Direktive</th>
+            <td>HTML atributi koji nose funkcionalnost</td>
+            <td class="mono t-praksa">v-model, v-if, :class</td>
+          </tr>
+          <tr>
+            <th scope="row">Izračunata svojstva</th>
+            <td>Svojstvo koje zavisi od drugih; menja se kad se zavisnost promeni</td>
+            <td class="mono t-praksa">computed(() =&gt; ...)</td>
+          </tr>
+          <tr>
+            <th scope="row">Dvosmerno povezivanje</th>
+            <td>Promene u UI stižu do podataka i obrnuto</td>
+            <td class="mono t-praksa">v-model="model.kolicina"</td>
+          </tr>
+          <tr>
+            <th scope="row">Komponente jedne datoteke</th>
+            <td>HTML, JavaScript i CSS u istoj datoteci</td>
+            <td class="mono t-praksa">*.vue</td>
+          </tr>
+          <tr>
+            <th scope="row">Jedan korenski čvor</th>
+            <td>Ograničenje šablona; Vue 3 dozvoljava više korena</td>
+            <td>koristi se Vue 3</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="primena">
+      <p class="primena-naslov">U vašem radu</p>
+      <p>
+        Forma za stavku spaja tri od ovih pojmova u jedan primer koji vredi
+        pokazati: <code>v-model</code> vezuje izabrani proizvod,
+        <code>computed</code> računa koja cena važi i koliki je iznos, a
+        deklarativni šablon to prikazuje. Nema koda koji „ažurira polje sa
+        iznosom” — iznos je izveden iz stanja i ne može zaostati za njim.
+      </p>
+      <p class="naslov-koda">frontend/src/components/StavkaForma.vue</p>
+      <pre><code>const izabraniProizvod = computed(() =&gt;
+  proizvodi.value.find((p) =&gt; p.id === model.value.proizvod_id),
+);
+
+const iznos = computed(() =&gt; cenaZaPrikaz.value * (model.value.kolicina || 0));</code></pre>
+    </div>
+
+    <div class="blok upozorenje">
+      <p class="blok-naslov">Pitanje koje spaja poglavlja 3 i 9</p>
+      <p>
+        <em>„Ako Vue koristi MVVM, kako onda branite MVP?”</em>
+      </p>
+      <p>
+        Odgovor: MVVM je obrazac <strong>unutar</strong> View sloja — opisuje
+        kako komponenta drži svoje stanje i kako ga vezuje za prikaz. MVP opisuje
+        <strong>celu aplikaciju</strong> preko sve tri celine. Vue komponenta
+        nema pristup bazi ni pravilima domena; ona poziva Presenter i prikazuje
+        ono što dobije. Dvosmerno vezivanje je tehnika prikaza, a ne kanal ka
+        modelu.
+      </p>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="poglavlje" id="p10">
+    <div class="zaglavlje-poglavlja">
+      <span class="znacka">Rekapitulacija</span>
+      <h2>Sve na jednom mestu</h2>
+    </div>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Predavanje</th>
+            <th scope="col">Ključni pojam</th>
+            <th scope="col">Gde je u K1 / K2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">1</th>
+            <td>Troslojna arhitektura</td>
+            <td class="mono">Vue &#8594; Flask &#8594; MySQL</td>
+          </tr>
+          <tr>
+            <th scope="row">1</th>
+            <td>MVC obrazac</td>
+            <td class="mono">K1/ODBRANA.md &#8212; poređenje sa MVP</td>
+          </tr>
+          <tr>
+            <th scope="row">4</th>
+            <td>HTTP zahtev i odgovor</td>
+            <td class="mono">svaki poziv iz api.js</td>
+          </tr>
+          <tr>
+            <th scope="row">4</th>
+            <td>Statusni kodovi</td>
+            <td class="mono">200 / 201 / 400 / 404 / 409 / 503</td>
+          </tr>
+          <tr>
+            <th scope="row">5</th>
+            <td>Klijentski templejt sistem</td>
+            <td class="mono">frontend/src/components/*.vue</td>
+          </tr>
+          <tr>
+            <th scope="row">6, 7</th>
+            <td>Flask rutiranje i request</td>
+            <td class="mono">backend/presenters/</td>
+          </tr>
+          <tr>
+            <th scope="row">8</th>
+            <td>ORM, db.Model, sesija</td>
+            <td class="mono">backend/models.py</td>
+          </tr>
+          <tr>
+            <th scope="row">9</th>
+            <td>REST ograničenja i CRUD nad resursima</td>
+            <td class="mono">ceo /api</td>
+          </tr>
+          <tr>
+            <th scope="row">10&#8211;13</th>
+            <td>JavaScript, DOM, događaji</td>
+            <td class="mono">Vue komponente</td>
+          </tr>
+          <tr>
+            <th scope="row">14</th>
+            <td>Vue, MVVM, virtuelni DOM</td>
+            <td class="mono">frontend/src/</td>
+          </tr>
+          <tr>
+            <th scope="row">16</th>
+            <td>AJAX, asinhroni pozivi</td>
+            <td class="mono">frontend/src/api.js</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Tri stvari koje niste dužni da znate, ali pomažu</h3>
+
+    <p>
+      Sledeći pojmovi <strong>ne pojavljuju se u predavanjima</strong>, ali su
+      dobri odgovori ako profesor pritisne dublje. Objašnjeni su u dokumentu
+      <code>K2/teorija.html</code>:
+    </p>
+
+    <ul>
+      <li><strong>Idempotentnost</strong> — zašto je <code>PUT</code> idempotentan, a <code>POST</code> nije</li>
+      <li><strong>ACID</strong> — atomarnost, konzistentnost, izolovanost, trajnost transakcije</li>
+      <li><strong>Same-origin i CORS</strong> — zašto vaš klijent poziva relativnu putanju i zašto mu CORS nije potreban</li>
+    </ul>
+
+    <div class="blok">
+      <p class="blok-naslov">Ako imate vremena samo za jednu stvar</p>
+      <p>
+        Naučite poglavlje 3 — razliku MVC i MVP — i poglavlje 7, šest REST
+        ograničenja. To su dve teme koje se najdirektnije poklapaju sa tekstom
+        oba zadatka.
+      </p>
+    </div>
+  </section>
+
+  <p class="podnozje">
+    19 prezentacija &#183; troslojna arhitektura &#183; HTTP &#183; MVC / MVP
+    &#183; templejti &#183; Flask &#183; ORM &#183; REST &#183; AJAX &#183; Vue
+  </p>
+</div>
+</body>
+</html>
