@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" style="color:#12211f;background:#ffffff" viewBox="0 0 940 300" role="img" class="svg-siroko"
+            aria-label="Narudžbina je preko stranog ključa narudzbina_id povezana sa stavkom uz kaskadno brisanje, dok je proizvod povezan sa stavkom preko proizvod_id uz zabranu brisanja">
+  <style>
+    text { font-family: Consolas, "Segoe UI", sans-serif; }
+    .f-master { fill: #0e6e6e; }
+    .s-master { stroke: #0e6e6e; }
+    .f-detalj { fill: #a9640e; }
+    .s-detalj { stroke: #a9640e; }
+  </style>
+  <title>Narudžbina je preko stranog ključa narudzbina_id povezana sa stavkom uz kaskadno brisanje, dok je proizvod povezan sa stavkom preko proizvod_id uz zabranu brisanja</title>
+            <!-- NARUDZBINA -->
+            <rect x="20" y="40" width="230" height="188" rx="3"
+              fill="none" stroke="currentColor" stroke-width="1.5" />
+            <rect x="20" y="40" width="230" height="34" rx="3"
+              class="f-master" opacity="0.14" />
+            <line x1="20" y1="74" x2="250" y2="74"
+              stroke="currentColor" stroke-width="1.5" />
+            <text x="36" y="62" font-family="Consolas, monospace"
+              font-size="14" font-weight="700" fill="currentColor">narudzbina</text>
+            <text x="234" y="62" font-family="Consolas, monospace" font-size="10"
+              text-anchor="end" fill="currentColor" opacity="0.65">MASTER</text>
+
+            <text x="36" y="97" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor" font-weight="700">id</text>
+            <text x="130" y="97" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor" opacity="0.75">INT  PK</text>
+            <text x="36" y="121" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor">broj</text>
+            <text x="130" y="121" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor" opacity="0.75">UNIQUE</text>
+            <text x="36" y="145" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor">kupac</text>
+            <text x="36" y="169" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor">email</text>
+            <text x="36" y="193" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor">datum</text>
+            <text x="36" y="217" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor">status</text>
+
+            <!-- STAVKA -->
+            <rect x="355" y="40" width="230" height="164" rx="3"
+              fill="none" stroke="currentColor" stroke-width="1.5" />
+            <rect x="355" y="40" width="230" height="34" rx="3"
+              class="f-detalj" opacity="0.16" />
+            <line x1="355" y1="74" x2="585" y2="74"
+              stroke="currentColor" stroke-width="1.5" />
+            <text x="371" y="62" font-family="Consolas, monospace"
+              font-size="14" font-weight="700" fill="currentColor">stavka</text>
+            <text x="569" y="62" font-family="Consolas, monospace" font-size="10"
+              text-anchor="end" fill="currentColor" opacity="0.65">DETAIL</text>
+
+            <text x="371" y="97" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor" font-weight="700">id</text>
+            <text x="371" y="121" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor" font-weight="700">narudzbina_id</text>
+            <text x="371" y="145" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor" font-weight="700">proizvod_id</text>
+            <text x="371" y="169" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor">kolicina</text>
+            <text x="371" y="193" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor">cena_po_komadu</text>
+
+            <!-- PROIZVOD -->
+            <rect x="690" y="40" width="230" height="188" rx="3"
+              fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-dasharray="6 3" />
+            <line x1="690" y1="74" x2="920" y2="74"
+              stroke="currentColor" stroke-width="1.5" />
+            <text x="706" y="62" font-family="Consolas, monospace"
+              font-size="14" font-weight="700" fill="currentColor">proizvod</text>
+            <text x="904" y="62" font-family="Consolas, monospace" font-size="10"
+              text-anchor="end" fill="currentColor" opacity="0.65">ŠIFARNIK</text>
+
+            <text x="706" y="97" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor" font-weight="700">id</text>
+            <text x="800" y="97" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor" opacity="0.75">INT  PK</text>
+            <text x="706" y="121" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor">naziv</text>
+            <text x="706" y="145" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor">opis</text>
+            <text x="706" y="169" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor">cena</text>
+            <text x="706" y="193" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor">jedinica_mere</text>
+            <text x="706" y="217" font-family="Consolas, monospace" font-size="12"
+              fill="currentColor">dostupan</text>
+
+            <!-- narudzbina 1 : N stavka -->
+            <line x1="250" y1="130" x2="349" y2="130"
+              class="s-master" stroke-width="2" />
+            <line x1="268" y1="120" x2="268" y2="140"
+              class="s-master" stroke-width="2" />
+            <path d="M 331 120 L 353 130 L 331 140 M 331 130 L 353 130"
+              fill="none" class="s-master" stroke-width="2" />
+            <text x="300" y="114" font-family="Consolas, monospace" font-size="11"
+              text-anchor="middle" fill="currentColor">1 : N</text>
+            <text x="300" y="158" font-family="Consolas, monospace" font-size="11"
+              text-anchor="middle" class="f-master" font-weight="700">CASCADE</text>
+
+            <!-- proizvod 1 : N stavka -->
+            <line x1="684" y1="130" x2="591" y2="130"
+              stroke="currentColor" stroke-width="1.5" stroke-dasharray="6 3" />
+            <line x1="666" y1="120" x2="666" y2="140"
+              stroke="currentColor" stroke-width="1.5" />
+            <path d="M 609 120 L 587 130 L 609 140 M 609 130 L 587 130"
+              fill="none" stroke="currentColor" stroke-width="1.5" />
+            <text x="637" y="114" font-family="Consolas, monospace" font-size="11"
+              text-anchor="middle" fill="currentColor">1 : N</text>
+            <text x="637" y="158" font-family="Consolas, monospace" font-size="11"
+              text-anchor="middle" font-weight="700" fill="currentColor">RESTRICT</text>
+
+            <!-- UNIQUE -->
+            <text x="470" y="248" font-family="Consolas, monospace" font-size="11"
+              text-anchor="middle" fill="currentColor" opacity="0.8">UNIQUE (narudzbina_id, proizvod_id)</text>
+            <text x="470" y="272" font-size="11" text-anchor="middle"
+              fill="currentColor" opacity="0.6" font-family="Segoe UI, sans-serif">isti proizvod najviše jednom po narudžbini</text>
+          </svg>

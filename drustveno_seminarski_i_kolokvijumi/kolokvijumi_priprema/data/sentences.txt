@@ -1,0 +1,5 @@
+The/DT cat/NN sat/VBD on/IN the/DT mat/NN
+She/PRP loves/VBZ to/TO read/VB books/NNS in/IN the/DT library/NN
+John/NNP is/VBZ studying/VBG for/IN his/PRP$ exams/NNS
+The/DT quick/JJ brown/NN fox/NN jumps/VBZ over/IN the/DT lazy/JJ dog/NN
+I/PRP will/MD visit/VB my/PRP$ friend/NN tomorrow/NN

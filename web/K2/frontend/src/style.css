@@ -1,0 +1,626 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  background: #f4f6f8;
+  color: #1f2937;
+}
+
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+}
+
+.container {
+  width: min(1150px, 94%);
+  margin: 0 auto;
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.mono,
+.brojevi {
+  font-variant-numeric: tabular-nums;
+}
+
+.mono {
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 14px;
+}
+
+.desno {
+  text-align: right;
+}
+
+/* Zaglavlje */
+
+.topbar {
+  background: #111827;
+  color: white;
+  padding: 18px 0;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+nav a {
+  color: white;
+}
+
+nav a.router-link-active {
+  text-decoration: underline;
+}
+
+nav a.button.router-link-active {
+  text-decoration: none;
+}
+
+.content {
+  padding: 32px 0 60px;
+}
+
+/* Dugmad */
+
+.button {
+  display: inline-block;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: #1d4ed8;
+  text-decoration: none;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.button.secondary {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.button.secondary:hover {
+  background: #d1d5db;
+}
+
+.button.opasno {
+  background: #dc2626;
+  color: white;
+}
+
+.button.opasno:hover {
+  background: #b91c1c;
+}
+
+.button.small {
+  padding: 7px 14px;
+  font-size: 14px;
+}
+
+.veza {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.veza:hover {
+  text-decoration: underline;
+}
+
+.veza.opasno {
+  color: #dc2626;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.actions.right {
+  justify-content: flex-end;
+  margin-top: 0;
+}
+
+/* Poruke */
+
+.poruke {
+  position: fixed;
+  top: 84px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 50;
+}
+
+.poruka {
+  background: #065f46;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+  cursor: pointer;
+  max-width: 380px;
+  line-height: 1.45;
+}
+
+.poruka.greska {
+  background: #b91c1c;
+}
+
+.upozorenje {
+  background: #fee2e2;
+  border-left: 4px solid #dc2626;
+  color: #991b1b;
+  padding: 12px 16px;
+  border-radius: 6px;
+}
+
+/* Pilule za status */
+
+.pilula {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pilula.u_pripremi {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pilula.potvrdjena {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.pilula.isporucena {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.pilula.dostupan {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.pilula.nedostupan {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+/* Naslovi stranica */
+
+.page-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.page-title h1 {
+  font-size: 32px;
+  margin-top: 6px;
+}
+
+.section-heading {
+  margin: 32px 0 16px;
+}
+
+/* Početna */
+
+.hero {
+  background: white;
+  border-radius: 18px;
+  padding: 46px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.hero h1 {
+  max-width: 760px;
+  margin: 8px 0 14px;
+  font-size: 38px;
+}
+
+.hero p.muted {
+  max-width: 720px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.stat {
+  background: white;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.stat span {
+  display: block;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.stat strong {
+  display: block;
+  font-size: 28px;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Alatna traka */
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  margin-bottom: 22px;
+}
+
+.toolbar input[type="text"],
+.toolbar select {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.toolbar input[type="text"] {
+  flex: 1;
+  min-width: 200px;
+}
+
+.prekidac {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.prekidac input {
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+}
+
+.prekidac.samostalni {
+  margin-top: 20px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Tabela */
+
+.table-card {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 14px 18px;
+  border-bottom: 1px solid #eef2f7;
+  vertical-align: top;
+}
+
+th.desno,
+td.desno {
+  text-align: right;
+}
+
+th {
+  background: #f9fafb;
+  font-size: 14px;
+  color: #374151;
+  white-space: nowrap;
+}
+
+th.sortabilna {
+  cursor: pointer;
+  user-select: none;
+}
+
+th.sortabilna:hover {
+  color: #2563eb;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tfoot td {
+  background: #f9fafb;
+  font-weight: 600;
+  border-bottom: none;
+  border-top: 2px solid #e5e7eb;
+}
+
+td .opis {
+  display: block;
+  color: #6b7280;
+  font-size: 13px;
+  margin-top: 3px;
+  max-width: 46ch;
+}
+
+.jako {
+  font-size: 17px;
+}
+
+.table-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* Kartice */
+
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 26px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.zaglavlje-kartice {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 18px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid #eef2f7;
+}
+
+.stats span {
+  display: block;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.stats strong {
+  display: block;
+  font-size: 18px;
+  margin-top: 4px;
+}
+
+.stats strong.istaknuto {
+  font-size: 22px;
+  color: #065f46;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Forme */
+
+.form-card {
+  background: white;
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  max-width: 660px;
+}
+
+.form-card label {
+  display: block;
+  margin: 18px 0 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-card > label:first-of-type {
+  margin-top: 0;
+}
+
+.form-card input:not([type="checkbox"]),
+.form-card select,
+.form-card textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.form-card textarea {
+  resize: vertical;
+}
+
+.form-card input:focus,
+.form-card select:focus,
+.form-card textarea:focus {
+  outline: 2px solid #93c5fd;
+  border-color: #2563eb;
+}
+
+.form-card .neispravno {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.form-card .neispravno:focus {
+  outline-color: #fca5a5;
+}
+
+.greska-polja {
+  margin: 6px 0 0;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.pomoc {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Obračun u formi stavke */
+
+.obracun {
+  margin-top: 24px;
+  padding: 18px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.obracun-red {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 6px 0;
+}
+
+.obracun-red.zbir {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 6px;
+  padding-top: 12px;
+}
+
+.obracun-red.zbir strong {
+  font-size: 20px;
+  color: #065f46;
+}
+
+.obracun .pomoc {
+  margin-top: 12px;
+}
+
+/* Prazno stanje */
+
+.empty {
+  background: white;
+  border-radius: 14px;
+  padding: 44px;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.empty p {
+  color: #6b7280;
+}
+
+/* Modalni dijalog za potvrdu */
+
+.modal-pozadina {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modal {
+  background: white;
+  border-radius: 14px;
+  padding: 28px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.3);
+}
+
+.modal h2 {
+  font-size: 20px;
+}
+
+.modal p {
+  margin: 12px 0 0;
+  color: #4b5563;
+  line-height: 1.6;
+}

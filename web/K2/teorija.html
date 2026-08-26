@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skripta: REST API i web aplikacija</title>
+</head>
+<body>
+<style>
+  :root {
+    --papir: #f5f7fa;
+    --povrsina: #ffffff;
+    --povrsina-2: #eaeff5;
+    --tinta: #0f1620;
+    --priguseno: #5b6878;
+    --linija: #d9e0e9;
+    --zahtev: #1d4ed8;
+    --odgovor: #047857;
+    --pazi: #b45309;
+    --senka: rgba(15, 22, 32, 0.07);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --papir: #0a0f16;
+      --povrsina: #121a24;
+      --povrsina-2: #1b2530;
+      --tinta: #dee6ef;
+      --priguseno: #8c9aaa;
+      --linija: #22303d;
+      --zahtev: #6d9bf7;
+      --odgovor: #34b98c;
+      --pazi: #e0a44f;
+      --senka: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --papir: #0a0f16;
+    --povrsina: #121a24;
+    --povrsina-2: #1b2530;
+    --tinta: #dee6ef;
+    --priguseno: #8c9aaa;
+    --linija: #22303d;
+    --zahtev: #6d9bf7;
+    --odgovor: #34b98c;
+    --pazi: #e0a44f;
+    --senka: rgba(0, 0, 0, 0.45);
+  }
+
+  :root[data-theme="light"] {
+    --papir: #f5f7fa;
+    --povrsina: #ffffff;
+    --povrsina-2: #eaeff5;
+    --tinta: #0f1620;
+    --priguseno: #5b6878;
+    --linija: #d9e0e9;
+    --zahtev: #1d4ed8;
+    --odgovor: #047857;
+    --pazi: #b45309;
+    --senka: rgba(15, 22, 32, 0.07);
+  }
+
+  :root {
+    --naslovi: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial,
+      sans-serif;
+    --telo: Georgia, "Times New Roman", "Liberation Serif", serif;
+    --mono: Consolas, "Cascadia Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  body {
+    margin: 0;
+    background: var(--papir);
+    color: var(--tinta);
+    font-family: var(--telo);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stranica {
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---------- Naslovna ---------- */
+
+  .naslovna {
+    border-bottom: 3px double var(--tinta);
+    padding-bottom: 2.2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .oznaka {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--zahtev);
+    margin: 0 0 1.2rem;
+  }
+
+  .naslovna h1 {
+    font-family: var(--naslovi);
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 0 0 1rem;
+    max-width: 22ch;
+  }
+
+  .uvodni {
+    font-size: 1.05rem;
+    color: var(--priguseno);
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  /* ---------- Sadržaj ---------- */
+
+  .sadrzaj {
+    background: var(--povrsina);
+    border: 1px solid var(--linija);
+    border-radius: 4px;
+    padding: 1.5rem 1.7rem;
+    margin-bottom: 3.5rem;
+  }
+
+  .sadrzaj h2 {
+    font-family: var(--naslovi);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--priguseno);
+    margin: 0 0 1rem;
+  }
+
+  .sadrzaj ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 2;
+    column-gap: 2.5rem;
+    font-family: var(--naslovi);
+    font-size: 0.92rem;
+  }
+
+  .sadrzaj li {
+    margin: 0 0 0.5rem;
+    break-inside: avoid;
+    display: flex;
+    gap: 0.7rem;
+  }
+
+  .sadrzaj li span {
+    font-family: var(--mono);
+    color: var(--zahtev);
+    font-size: 0.82rem;
+    min-width: 1.4rem;
+  }
+
+  .sadrzaj a {
+    color: var(--tinta);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+
+  .sadrzaj a:hover {
+    border-bottom-color: var(--zahtev);
+  }
+
+  /* ---------- Poglavlja ---------- */
+
+  .poglavlje {
+    padding-top: 2.8rem;
+    margin-top: 2.8rem;
+    border-top: 1px solid var(--linija);
+    scroll-margin-top: 1rem;
+  }
+
+  .poglavlje:first-of-type {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .broj-poglavlja {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    color: var(--zahtev);
+    margin: 0 0 0.5rem;
+  }
+
+  h2 {
+    font-family: var(--naslovi);
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3.2vw, 1.95rem);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0 0 1.3rem;
+  }
+
+  h3 {
+    font-family: var(--naslovi);
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 2.3rem 0 0.7rem;
+  }
+
+  p {
+    max-width: 66ch;
+    margin: 0 0 1.2rem;
+  }
+
+  ul,
+  ol.tekst {
+    max-width: 66ch;
+    padding-left: 1.3rem;
+    margin: 0 0 1.2rem;
+  }
+
+  li {
+    margin-bottom: 0.55rem;
+  }
+
+  ul li::marker,
+  ol.tekst li::marker {
+    color: var(--zahtev);
+  }
+
+  strong {
+    font-weight: 700;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.83em;
+    background: var(--povrsina-2);
+    padding: 0.12em 0.36em;
+    border-radius: 3px;
+  }
+
+  a.upucivanje {
+    color: var(--zahtev);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+  }
+
+  /* ---------- Kod ---------- */
+
+  pre {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    background: var(--povrsina);
+    border: 1px solid var(--linija);
+    border-left: 3px solid var(--zahtev);
+    border-radius: 0 4px 4px 0;
+    padding: 1.1rem 1.3rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    tab-size: 4;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  .naslov-koda {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--priguseno);
+    margin: 1.5rem 0 -1.1rem;
+  }
+
+  .naslov-koda + pre {
+    margin-top: 0.7rem;
+  }
+
+  /* ---------- Definicije i napomene ---------- */
+
+  .blok {
+    background: var(--povrsina);
+    border: 1px solid var(--linija);
+    border-left: 3px solid var(--priguseno);
+    border-radius: 0 4px 4px 0;
+    padding: 1.2rem 1.4rem;
+    margin: 1.6rem 0;
+  }
+
+  .blok p {
+    margin-bottom: 0.7rem;
+  }
+
+  .blok p:last-child {
+    margin-bottom: 0;
+  }
+
+  .blok-naslov {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0 0 0.6rem;
+    color: var(--priguseno);
+  }
+
+  .blok.definicija {
+    border-left-color: var(--zahtev);
+  }
+
+  .blok.definicija .blok-naslov {
+    color: var(--zahtev);
+  }
+
+  .blok.pazi {
+    border-left-color: var(--pazi);
+  }
+
+  .blok.pazi .blok-naslov {
+    color: var(--pazi);
+  }
+
+  .blok.kljucno {
+    border-left-color: var(--odgovor);
+  }
+
+  .blok.kljucno .blok-naslov {
+    color: var(--odgovor);
+  }
+
+  /* ---------- Tabele ---------- */
+
+  .okvir-tabele {
+    overflow-x: auto;
+    margin: 1.6rem 0;
+    border: 1px solid var(--linija);
+    border-radius: 4px;
+    background: var(--povrsina);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 32rem;
+    font-family: var(--naslovi);
+    font-size: 0.88rem;
+  }
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--linija);
+    vertical-align: top;
+  }
+
+  thead th {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--priguseno);
+    font-weight: 400;
+    background: var(--povrsina-2);
+    white-space: nowrap;
+  }
+
+  tbody th {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child th,
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  td.mono,
+  th.mono {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+  }
+
+  .da {
+    color: var(--odgovor);
+    font-weight: 600;
+  }
+
+  .ne {
+    color: var(--pazi);
+    font-weight: 600;
+  }
+
+  /* ---------- Figure ---------- */
+
+  figure {
+    margin: 2rem 0;
+    background: var(--povrsina);
+    border: 1px solid var(--linija);
+    border-radius: 4px;
+    padding: 1.5rem 1.3rem 1.1rem;
+    box-shadow: 0 1px 3px var(--senka);
+  }
+
+  .okvir-svg {
+    overflow-x: auto;
+  }
+
+  figure svg {
+    display: block;
+    width: 100%;
+    min-width: 44rem;
+    height: auto;
+    color: var(--tinta);
+  }
+
+  figcaption {
+    margin-top: 1.1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--linija);
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: var(--priguseno);
+    max-width: 70ch;
+  }
+
+  figcaption b {
+    color: var(--tinta);
+    font-weight: 600;
+  }
+
+  .f-zahtev {
+    fill: var(--zahtev);
+  }
+
+  .s-zahtev {
+    stroke: var(--zahtev);
+  }
+
+  .f-odgovor {
+    fill: var(--odgovor);
+  }
+
+  .s-odgovor {
+    stroke: var(--odgovor);
+  }
+
+  /* ---------- Pojmovnik ---------- */
+
+  .pojmovnik {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    margin-top: 1.5rem;
+  }
+
+  .pojam {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    gap: 0 1.5rem;
+    padding: 0.85rem 0;
+    border-top: 1px solid var(--linija);
+  }
+
+  .pojam:first-child {
+    border-top: none;
+  }
+
+  .pojam dt {
+    font-family: var(--mono);
+    font-size: 0.84rem;
+    color: var(--tinta);
+    font-weight: 600;
+  }
+
+  .pojam dd {
+    margin: 0;
+    font-size: 0.94rem;
+    color: var(--priguseno);
+  }
+
+  /* ---------- Podnožje ---------- */
+
+  .podnozje {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 3px double var(--tinta);
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--priguseno);
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 40rem) {
+    .sadrzaj ol {
+      columns: 1;
+    }
+
+    .pojam {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.25rem;
+    }
+  }
+</style>
+
+<div class="stranica">
+  <header class="naslovna">
+    <p class="oznaka">Veb programiranje &middot; Skripta uz Kolokvijum II</p>
+    <h1>Teorija na kojoj počiva REST API i web aplikacija</h1>
+    <p class="uvodni">
+      Šta se zapravo dešava između klika u pretraživaču i reda u bazi. Svaki
+      pojam je vezan za konkretno mesto u rešenju za evidenciju narudžbina —
+      Flask REST servis, Vue klijent i MySQL baza.
+    </p>
+  </header>
+
+  <nav class="sadrzaj">
+    <h2>Sadržaj</h2>
+    <ol>
+      <li><span>1</span><a href="#p1">Klijent i server: zašto dva programa</a></li>
+      <li><span>2</span><a href="#p2">HTTP: protokol na kom sve stoji</a></li>
+      <li><span>3</span><a href="#p3">REST: skup ograničenja, ne biblioteka</a></li>
+      <li><span>4</span><a href="#p4">JSON: format razmene</a></li>
+      <li><span>5</span><a href="#p5">Flask: od funkcije do krajnje tačke</a></li>
+      <li><span>6</span><a href="#p6">ORM: objekti umesto SQL-a</a></li>
+      <li><span>7</span><a href="#p7">Relaciona baza i integritet</a></li>
+      <li><span>8</span><a href="#p8">Jednostranična aplikacija</a></li>
+      <li><span>9</span><a href="#p9">Vue: deklarativan prikaz</a></li>
+      <li><span>10</span><a href="#p10">Validacija i granica poverenja</a></li>
+      <li><span>11</span><a href="#p11">Izvor, same-origin i CORS</a></li>
+      <li><span>12</span><a href="#p12">Kako se sve slaže u MVP</a></li>
+      <li><span>13</span><a href="#p13">Pojmovnik</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1 -->
+  <section class="poglavlje" id="p1">
+    <p class="broj-poglavlja">POGLAVLJE 1</p>
+    <h2>Klijent i server: zašto dva programa</h2>
+
+    <p>
+      Web aplikacija nije jedan program nego najmanje dva, koji se izvršavaju na
+      različitim mestima i ne dele memoriju. <strong>Server</strong> čuva podatke
+      i sprovodi pravila; radi na jednoj mašini, ima pristup bazi i jedini je
+      merodavan za to šta je istina. <strong>Klijent</strong> radi u
+      pretraživaču korisnika, na tuđem računaru koji ne kontrolišete, i njegov
+      posao je da prikaže stanje i prihvati unos.
+    </p>
+
+    <p>
+      Iz te podele sledi sve ostalo. Pošto ne dele memoriju, moraju da
+      razgovaraju porukama — a poruke idu preko mreže, po dogovorenom protokolu.
+      Pošto klijent radi na tuđem računaru, ništa što on pošalje ne sme se
+      uzeti zdravo za gotovo.
+    </p>
+
+    <div class="blok kljucno">
+      <p class="blok-naslov">Ključno</p>
+      <p>
+        Klijent nije produžetak servera nego zaseban, nepouzdan sagovornik.
+        Svaka provera koja štiti podatke mora postojati na serveru, bez obzira
+        na to šta klijent radi.
+      </p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="poglavlje" id="p2">
+    <p class="broj-poglavlja">POGLAVLJE 2</p>
+    <h2>HTTP: protokol na kom sve stoji</h2>
+
+    <p>
+      HTTP je tekstualni protokol pitanja i odgovora. Klijent šalje
+      <strong>zahtev</strong>, server vraća <strong>odgovor</strong>, i time je
+      razmena gotova. Oba imaju istu građu: prva linija, zaglavlja, prazan red,
+      pa telo.
+    </p>
+
+    <figure>
+      <div class="okvir-svg">
+        <svg viewBox="0 0 940 330" role="img"
+          aria-label="Uporedni prikaz HTTP zahteva i odgovora, oba podeljena na startnu liniju, zaglavlja i telo">
+          <!-- ZAHTEV -->
+          <text x="20" y="34" font-family="Consolas, monospace" font-size="11"
+            letter-spacing="1.4" class="f-zahtev" font-weight="700">ZAHTEV &#8212; KLIJENT &#8594; SERVER</text>
+          <rect x="20" y="48" width="430" height="252" rx="3"
+            fill="none" class="s-zahtev" stroke-width="1.8" />
+
+          <text x="38" y="76" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor" font-weight="700">POST /api/stavke HTTP/1.1</text>
+          <text x="432" y="76" font-family="Consolas, monospace" font-size="9"
+            text-anchor="end" fill="currentColor" opacity="0.5">STARTNA LINIJA</text>
+
+          <line x1="20" y1="90" x2="450" y2="90" stroke="currentColor"
+            stroke-width="1" opacity="0.25" />
+
+          <text x="38" y="114" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">Host: localhost:5000</text>
+          <text x="38" y="136" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">Content-Type: application/json</text>
+          <text x="432" y="114" font-family="Consolas, monospace" font-size="9"
+            text-anchor="end" fill="currentColor" opacity="0.5">ZAGLAVLJA</text>
+
+          <line x1="20" y1="152" x2="450" y2="152" stroke="currentColor"
+            stroke-width="1" opacity="0.25" />
+
+          <text x="38" y="176" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">{</text>
+          <text x="38" y="198" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">  "narudzbina_id": 4,</text>
+          <text x="38" y="220" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">  "proizvod_id": 2,</text>
+          <text x="38" y="242" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">  "kolicina": 3</text>
+          <text x="38" y="264" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">}</text>
+          <text x="432" y="176" font-family="Consolas, monospace" font-size="9"
+            text-anchor="end" fill="currentColor" opacity="0.5">TELO</text>
+
+          <text x="38" y="290" font-size="10" fill="currentColor" opacity="0.55"
+            font-family="Segoe UI, sans-serif">cene nema u telu &#8212; klijent je ne određuje</text>
+
+          <!-- ODGOVOR -->
+          <text x="490" y="34" font-family="Consolas, monospace" font-size="11"
+            letter-spacing="1.4" class="f-odgovor" font-weight="700">ODGOVOR &#8212; SERVER &#8594; KLIJENT</text>
+          <rect x="490" y="48" width="430" height="252" rx="3"
+            fill="none" class="s-odgovor" stroke-width="1.8" />
+
+          <text x="508" y="76" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor" font-weight="700">HTTP/1.1 201 Created</text>
+          <text x="902" y="76" font-family="Consolas, monospace" font-size="9"
+            text-anchor="end" fill="currentColor" opacity="0.5">STATUSNA LINIJA</text>
+
+          <line x1="490" y1="90" x2="920" y2="90" stroke="currentColor"
+            stroke-width="1" opacity="0.25" />
+
+          <text x="508" y="114" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">Content-Type: application/json</text>
+          <text x="902" y="114" font-family="Consolas, monospace" font-size="9"
+            text-anchor="end" fill="currentColor" opacity="0.5">ZAGLAVLJA</text>
+
+          <line x1="490" y1="152" x2="920" y2="152" stroke="currentColor"
+            stroke-width="1" opacity="0.25" />
+
+          <text x="508" y="176" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">{</text>
+          <text x="508" y="198" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">  "id": 7,</text>
+          <text x="508" y="220" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">  "cena_po_komadu": 3450.00,</text>
+          <text x="508" y="242" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">  "iznos": 10350.00</text>
+          <text x="508" y="264" font-family="Consolas, monospace" font-size="12.5"
+            fill="currentColor">}</text>
+          <text x="902" y="176" font-family="Consolas, monospace" font-size="9"
+            text-anchor="end" fill="currentColor" opacity="0.5">TELO</text>
+
+          <text x="508" y="290" font-size="10" fill="currentColor" opacity="0.55"
+            font-family="Segoe UI, sans-serif">cenu je server upisao iz šifarnika</text>
+
+          <!-- Strelice -->
+          <path d="M 452 130 L 486 130" class="s-zahtev" stroke-width="2"
+            fill="none" marker-end="url(#kaDesno)" />
+          <path d="M 486 210 L 452 210" class="s-odgovor" stroke-width="2"
+            fill="none" marker-end="url(#kaLevo)" />
+          <defs>
+            <marker id="kaDesno" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" class="f-zahtev" />
+            </marker>
+            <marker id="kaLevo" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" class="f-odgovor" />
+            </marker>
+          </defs>
+        </svg>
+      </div>
+      <figcaption>
+        Zahtev i odgovor imaju istu građu i razlikuju se samo po prvoj liniji:
+        zahtev njome kaže <b>šta hoće</b> (metoda i putanja), odgovor njome kaže
+        <b>kako je prošlo</b> (statusni kod). Primetite šta u telu zahteva
+        <em>ne</em> stoji: cena. Klijent je ne šalje, jer je ne sme određivati —
+        server je upisuje iz šifarnika i tek je onda vraća.
+      </figcaption>
+    </figure>
+
+    <h3>Metode</h3>
+
+    <p>
+      Metoda kazuje nameru. Dve osobine se često pitaju na ispitu.
+      <strong>Bezbedna</strong> metoda ne menja stanje na serveru.
+      <strong>Idempotentna</strong> metoda, ponovljena više puta sa istim
+      sadržajem, ostavlja server u istom stanju kao da je pozvana jednom.
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Metoda</th>
+            <th scope="col">Namena</th>
+            <th scope="col">Bezbedna</th>
+            <th scope="col">Idempotentna</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row" class="mono">GET</th>
+            <td>Čitanje resursa</td>
+            <td class="da">da</td>
+            <td class="da">da</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">POST</th>
+            <td>Kreiranje novog resursa</td>
+            <td class="ne">ne</td>
+            <td class="ne">ne</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">PUT</th>
+            <td>Zamena celog resursa</td>
+            <td class="ne">ne</td>
+            <td class="da">da</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">PATCH</th>
+            <td>Delimična izmena</td>
+            <td class="ne">ne</td>
+            <td class="ne">ne nužno</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">DELETE</th>
+            <td>Brisanje resursa</td>
+            <td class="ne">ne</td>
+            <td class="da">da</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Zašto je <code>POST</code> jedini koji nije idempotentan: pozvan dvaput,
+      napraviće dve stavke. <code>PUT /api/stavke/7</code> pozvan dvaput sa
+      istim telom ostavlja stavku 7 u istom stanju. <code>DELETE</code> pozvan
+      drugi put vraća <code>404</code>, ali je stanje servera isto — resursa i
+      dalje nema, a to je ono što se meri.
+    </p>
+
+    <h3>Statusni kodovi</h3>
+
+    <p>
+      Prva cifra nosi klasu odgovora: <code>2xx</code> uspeh, <code>3xx</code>
+      preusmerenje, <code>4xx</code> greška klijenta, <code>5xx</code> greška
+      servera. Podela na <code>4xx</code> i <code>5xx</code> odgovara na
+      pitanje ko je pogrešio.
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Kod</th>
+            <th scope="col">Značenje</th>
+            <th scope="col">Gde se javlja u rešenju</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row" class="mono">200</th>
+            <td>OK</td>
+            <td>Uspešno čitanje ili izmena</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">201</th>
+            <td>Created</td>
+            <td>Nova narudžbina, stavka ili proizvod</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">400</th>
+            <td>Bad Request</td>
+            <td>Neispravan unos; telo nosi greške po poljima</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">404</th>
+            <td>Not Found</td>
+            <td>Traženi entitet ne postoji</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">409</th>
+            <td>Conflict</td>
+            <td>Brisanje proizvoda koji stoji na stavkama</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">500</th>
+            <td>Internal Server Error</td>
+            <td>Neuhvaćena greška u kodu servera</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">503</th>
+            <td>Service Unavailable</td>
+            <td>Baza nije dostupna</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="blok pazi">
+      <p class="blok-naslov">Česta greška</p>
+      <p>
+        Vraćanje <code>200 OK</code> uz poruku o grešci u telu. Klijent tada
+        mora da čita telo da bi znao da li je uspelo, čime statusni kod gubi
+        smisao. <code>400</code> za neispravan unos i <code>409</code> za sukob
+        sa stanjem podataka su tu da se razlikuju bez otvaranja tela.
+      </p>
+    </div>
+
+    <h3>Bezstanjnost</h3>
+
+    <p>
+      HTTP je bezstanjan: server ne pamti ništa između dva zahteva. Svaki zahtev
+      mora sam sa sobom doneti sve što je potrebno da bi bio razumljiv. To je
+      ograničenje, ali i razlog zašto se serveri lako umnožavaju — bilo koji
+      primerak može opslužiti bilo koji zahtev, jer nijedan ne čuva istoriju
+      razgovora.
+    </p>
+  </section>
+
+  <!-- 3 -->
+  <section class="poglavlje" id="p3">
+    <p class="broj-poglavlja">POGLAVLJE 3</p>
+    <h2>REST: skup ograničenja, ne biblioteka</h2>
+
+    <p>
+      REST (Representational State Transfer) nije tehnologija koja se instalira
+      nego stil arhitekture koji je Roy Fielding opisao 2000. godine. Sastoji se
+      od ograničenja koja, ako se poštuju, daju sistem koji se lako menja i
+      umnožava.
+    </p>
+
+    <ol class="tekst">
+      <li><strong>Klijent-server</strong> — razdvojene odgovornosti prikaza i podataka.</li>
+      <li><strong>Bezstanjnost</strong> — server ne pamti kontekst između zahteva.</li>
+      <li><strong>Keširanje</strong> — odgovor kaže sme li se čuvati.</li>
+      <li><strong>Uniformni interfejs</strong> — isti način pristupa svim resursima.</li>
+      <li><strong>Slojevit sistem</strong> — klijent ne zna da li mu odgovara server ili posrednik.</li>
+      <li><strong>Kod na zahtev</strong> — neobavezno; server sme poslati kod koji se izvršava na klijentu.</li>
+    </ol>
+
+    <h3>Resurs i URI</h3>
+
+    <p>
+      Osnovna jedinica u REST-u je <strong>resurs</strong> — imenica, a ne
+      radnja. Putanja imenuje <em>šta</em>, metoda kazuje <em>šta se s tim
+      radi</em>. Zato u ispravno projektovanom API-ju nema glagola u putanjama.
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Umesto</th>
+            <th scope="col">Ispravno</th>
+            <th scope="col">Zašto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">GET /dodajStavku</td>
+            <td class="mono">POST /api/stavke</td>
+            <td>Radnju nosi metoda, ne putanja</td>
+          </tr>
+          <tr>
+            <td class="mono">POST /obrisiNarudzbinu?id=4</td>
+            <td class="mono">DELETE /api/narudzbine/4</td>
+            <td>Identitet resursa je u putanji</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /listaSvihProizvoda</td>
+            <td class="mono">GET /api/proizvodi</td>
+            <td>Množina imenuje zbirku</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Podređeni resursi se izražavaju ugnježdenom putanjom, što master-detail
+      relaciju čini vidljivom već u adresi:
+      <code>GET /api/narudzbine/4/stavke</code> čita stavke koje pripadaju
+      narudžbini 4.
+    </p>
+
+    <div class="blok definicija">
+      <p class="blok-naslov">Reprezentacija</p>
+      <p>
+        Resurs je pojam, a ono što putuje mrežom je njegova
+        <strong>reprezentacija</strong> — konkretan zapis u nekom formatu.
+        Narudžbina 4 je resurs; JSON objekat koji server pošalje je jedna njena
+        reprezentacija. Isti resurs mogao bi se prikazati i kao XML ili HTML, a
+        da resurs ostane isti.
+      </p>
+    </div>
+
+    <h3>Parametri upita</h3>
+
+    <p>
+      Filtriranje, pretraga i sortiranje nisu novi resursi nego pogledi na isti,
+      pa idu u parametre upita:
+      <code>GET /api/narudzbine?status=potvrdjena&amp;sortiranje=datum&amp;smer=desc</code>.
+      Putanja i dalje imenuje zbirku narudžbina; parametri samo sužavaju i
+      uređuju ono što se vraća.
+    </p>
+
+    <h3>Nivoi zrelosti</h3>
+
+    <p>
+      Leonard Richardson je opisao četiri nivoa po tome koliko API koristi
+      mogućnosti HTTP-a:
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Nivo</th>
+            <th scope="col">Šta donosi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">0</th>
+            <td>Jedna putanja i jedna metoda za sve — HTTP se koristi samo kao prenosnik</td>
+          </tr>
+          <tr>
+            <th scope="row">1</th>
+            <td>Više resursa, svaki sa svojom putanjom</td>
+          </tr>
+          <tr>
+            <th scope="row">2</th>
+            <td>Pravilna upotreba metoda i statusnih kodova</td>
+          </tr>
+          <tr>
+            <th scope="row">3</th>
+            <td>Hipermedija — odgovor nosi veze ka sledećim mogućim radnjama</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="blok kljucno">
+      <p class="blok-naslov">Za odbranu</p>
+      <p>
+        Rešenje za narudžbine je na <strong>nivou 2</strong>: resursi imaju svoje
+        putanje, metode i statusni kodovi se koriste po značenju, ali odgovori
+        ne nose hipermedijske veze. Većina API-ja u praksi staje tu, i to je
+        iskren odgovor — bolji od tvrdnje da je API „potpuno REST-ful“.
+      </p>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="poglavlje" id="p4">
+    <p class="broj-poglavlja">POGLAVLJE 4</p>
+    <h2>JSON: format razmene</h2>
+
+    <p>
+      JSON (JavaScript Object Notation) je tekstualni zapis podataka sa svega
+      nekoliko tipova: objekat, niz, string, broj, logička vrednost i
+      <code>null</code>. Bira se zato što ga svaki jezik ume da pročita, a
+      pretraživač da pretvori u objekat bez ijedne biblioteke.
+    </p>
+
+    <p>
+      Pretvaranje objekta u tekst zove se <strong>serijalizacija</strong>,
+      obrnuto <strong>deserijalizacija</strong>. U rešenju to radi metoda
+      <code>u_recnik()</code> na svakom modelu — ona je granica na kojoj se
+      unutrašnji objekat pretvara u nešto što sme da napusti server.
+    </p>
+
+    <p class="naslov-koda">models.py</p>
+    <pre><code>def u_recnik(self):
+    return {
+        "id": self.id,
+        "kolicina": self.kolicina,
+        "cena_po_komadu": float(self.cena_po_komadu),
+        "iznos": float(self.iznos),
+    }</code></pre>
+
+    <div class="blok pazi">
+      <p class="blok-naslov">Zašto float()</p>
+      <p>
+        Novčani iznosi se u bazi čuvaju kao <code>DECIMAL</code>, koji Python
+        učitava kao <code>Decimal</code>. JSON ne poznaje taj tip, pa bi
+        serijalizacija pukla. Pretvaranje u <code>float</code> rešava razmenu,
+        ali samo <em>na izlazu</em> — računanje ostaje nad
+        <code>Decimal</code> vrednostima, jer <code>float</code> ne sabira
+        novac tačno.
+      </p>
+    </div>
+
+    <p>
+      Ta metoda je i mesto gde se odlučuje šta klijent sme da vidi. Polje koje
+      nije u rečniku ne napušta server, ma koliko postojalo u tabeli.
+    </p>
+  </section>
+
+  <!-- 5 -->
+  <section class="poglavlje" id="p5">
+    <p class="broj-poglavlja">POGLAVLJE 5</p>
+    <h2>Flask: od funkcije do krajnje tačke</h2>
+
+    <p>
+      Flask je mikro radni okvir: daje rutiranje, objekat zahteva i pravljenje
+      odgovora, a sve ostalo bira programer. Njegov posao je da HTTP zahtev
+      pretvori u poziv Python funkcije i njen povratak u HTTP odgovor.
+    </p>
+
+    <p class="naslov-koda">presenters/stavka_presenter.py</p>
+    <pre><code>@stavka_bp.post("")
+def dodaj_stavku():
+    vrednosti, greske = procitaj_podatke(request.get_json(silent=True) or {})
+    if greske:
+        return jsonify({"greske": greske}), 400
+
+    stavka = Stavka(**vrednosti)
+    db.session.add(stavka)
+    db.session.commit()
+
+    return jsonify(stavka.u_recnik()), 201</code></pre>
+
+    <p>
+      Dekorator <code>@stavka_bp.post("")</code> upisuje funkciju u mapu ruta —
+      par (putanja, metoda) pokazuje na nju. Objekat <code>request</code> nosi
+      podatke tekućeg zahteva, a <code>jsonify</code> pravi odgovor sa
+      ispravnim zaglavljem <code>Content-Type</code>. Drugi element povratne
+      vrednosti je statusni kod.
+    </p>
+
+    <h3>Blueprint</h3>
+
+    <p>
+      Blueprint je imenovana grupa ruta sa zajedničkim prefiksom. Umesto svih
+      ruta u jednom fajlu, svaki resurs dobija svoj modul, a
+      <code>app.py</code> ih samo registruje. U MVP podeli, jedan blueprint je
+      jedan Presenter.
+    </p>
+
+    <p class="naslov-koda">app.py</p>
+    <pre><code>app.register_blueprint(proizvod_bp)
+app.register_blueprint(narudzbina_bp)
+app.register_blueprint(stavka_bp)</code></pre>
+
+    <h3>Kontekst zahteva</h3>
+
+    <p>
+      Objekat <code>request</code> je globalan po imenu, ali ne i po sadržaju:
+      Flask ga vezuje za tekući zahtev, pa dve istovremene obrade vide svaka
+      svoj. To se zove kontekst zahteva i razlog je zašto se
+      <code>request</code> ne prosleđuje kao argument.
+    </p>
+  </section>
+
+  <!-- 6 -->
+  <section class="poglavlje" id="p6">
+    <p class="broj-poglavlja">POGLAVLJE 6</p>
+    <h2>ORM: objekti umesto SQL-a</h2>
+
+    <p>
+      Relaciona baza čuva redove u tabelama, a program radi sa objektima. ORM
+      (Object-Relational Mapping) premošćuje tu razliku: klasa se preslikava na
+      tabelu, instanca na red, atribut na kolonu.
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">U Pythonu</th>
+            <th scope="col">U bazi</th>
+            <th scope="col">Primer iz rešenja</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Klasa</td>
+            <td>Tabela</td>
+            <td class="mono">Stavka &#8594; stavka</td>
+          </tr>
+          <tr>
+            <td>Instanca</td>
+            <td>Red</td>
+            <td class="mono">Stavka(id=7)</td>
+          </tr>
+          <tr>
+            <td>Atribut</td>
+            <td>Kolona</td>
+            <td class="mono">kolicina &#8594; kolicina INT</td>
+          </tr>
+          <tr>
+            <td>Veza (<code>relationship</code>)</td>
+            <td>Strani ključ</td>
+            <td class="mono">narudzbina.stavke</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Zahvaljujući vezi, <code>narudzbina.stavke</code> je obična Python lista,
+      iako iza nje stoji <code>SELECT</code> nad tabelom <code>stavka</code>.
+      Zbog toga se izvedeni podaci mogu pisati kao običan Python:
+    </p>
+
+    <p class="naslov-koda">models.py</p>
+    <pre><code>@property
+def ukupan_iznos(self):
+    return sum((stavka.iznos for stavka in self.stavke), Decimal("0.00"))</code></pre>
+
+    <h3>Sesija i jedinica posla</h3>
+
+    <p>
+      <code>db.session</code> nije samo veza sa bazom nego evidencija izmena.
+      Prati koje objekte ste dodali, izmenili ili obrisali, i tek na
+      <code>commit()</code> sve to pretvara u SQL i izvršava kao
+      <strong>jednu transakciju</strong>. Taj obrazac se zove
+      <em>jedinica posla</em> (unit of work).
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Poziv</th>
+            <th scope="col">Šta se dešava</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row" class="mono">session.add(objekat)</th>
+            <td>Objekat se upisuje u evidenciju; baza još ne zna za njega</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">session.flush()</th>
+            <td>SQL se šalje bazi, ali transakcija ostaje otvorena</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">session.commit()</th>
+            <td>Transakcija se potvrđuje; izmene postaju trajne</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">session.rollback()</th>
+            <td>Sve od početka transakcije se poništava</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Zato brisanje narudžbine sa pet stavki nije šest nezavisnih radnji nego
+      jedna: ili prođe sve, ili ništa. Da se prekid dogodi na pola,
+      <code>rollback()</code> vraća bazu u stanje pre početka.
+    </p>
+
+    <div class="blok pazi">
+      <p class="blok-naslov">Problem N+1</p>
+      <p>
+        Ako se za listu od sto narudžbina za svaku posebno učitaju stavke, biće
+        sto i jedan upit umesto jednog. To je najčešći skriveni trošak ORM-a. U
+        rešenju lista narudžbina ne otvara stavke pojedinačno; pun sadržaj se
+        učitava tek na <code>GET /api/narudzbine/&lt;id&gt;</code>, gde se
+        gleda jedna narudžbina.
+      </p>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="poglavlje" id="p7">
+    <p class="broj-poglavlja">POGLAVLJE 7</p>
+    <h2>Relaciona baza i integritet</h2>
+
+    <p>
+      Baza nije pasivno skladište. Ona sprovodi pravila koja štite podatke i
+      kad aplikacija pogreši, i to je poslednja linija odbrane.
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Ograničenje</th>
+            <th scope="col">Šta garantuje</th>
+            <th scope="col">U rešenju</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row" class="mono">PRIMARY KEY</th>
+            <td>Jedinstvena i nepromenljiva oznaka reda</td>
+            <td class="mono">id</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">FOREIGN KEY</th>
+            <td>Vrednost mora postojati u nadređenoj tabeli</td>
+            <td class="mono">narudzbina_id, proizvod_id</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">UNIQUE</th>
+            <td>Vrednost se ne ponavlja</td>
+            <td class="mono">broj; (narudzbina_id, proizvod_id)</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">NOT NULL</th>
+            <td>Vrednost mora postojati</td>
+            <td class="mono">svi ključevi i obavezna polja</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Referencijalni integritet</h3>
+
+    <p>
+      Strani ključ sprečava da stavka pokazuje na nepostojeću narudžbinu. Ali
+      postavlja se i pitanje šta se dešava kada se nadređeni red obriše, a na
+      njega neko pokazuje. Odgovor se bira, i taj izbor izražava prirodu veze.
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Ponašanje</th>
+            <th scope="col">Šta radi</th>
+            <th scope="col">Kada je ispravno</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row" class="mono">CASCADE</th>
+            <td>Briše i podređene redove</td>
+            <td>Kad je podređeni deo nadređenog i bez njega nema smisla</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">RESTRICT</th>
+            <td>Odbija brisanje</td>
+            <td>Kad podređeni samo referiše zapis koji nije njegov roditelj</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">SET NULL</th>
+            <td>Postavlja ključ na <code>NULL</code></td>
+            <td>Kad veza sme da postoji i bez cilja</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="blok kljucno">
+      <p class="blok-naslov">Suština master-detail modela</p>
+      <p>
+        Tabela <code>stavka</code> ima dva strana ključa i oni su namerno
+        različito podešeni. Ka narudžbini ide <code>CASCADE</code>, jer je
+        narudžbina vlasnik svojih stavki. Ka proizvodu ide
+        <code>RESTRICT</code>, jer je proizvod šifarnik koji je postojao pre
+        stavke i ne sme nestati ispod nje. Samo je prva od te dve veze
+        master-detail.
+      </p>
+    </div>
+
+    <h3>Transakcije i ACID</h3>
+
+    <p>
+      Transakcija je niz operacija koji se izvršava kao celina. Četiri svojstva
+      koja se traže od nje pamte se kao ACID:
+    </p>
+
+    <ul>
+      <li><strong>Atomarnost</strong> — ili sve operacije prođu, ili nijedna.</li>
+      <li><strong>Konzistentnost</strong> — baza pre i posle poštuje sva ograničenja.</li>
+      <li><strong>Izolovanost</strong> — istovremene transakcije ne vide tuđe nedovršene izmene.</li>
+      <li><strong>Trajnost</strong> — potvrđena izmena preživljava pad sistema.</li>
+    </ul>
+
+    <p>
+      Motor <code>InnoDB</code> je u MySQL-u odabran upravo zato što podržava
+      transakcije i strane ključeve; stariji <code>MyISAM</code> ne podržava ni
+      jedno ni drugo.
+    </p>
+  </section>
+
+  <!-- 8 -->
+  <section class="poglavlje" id="p8">
+    <p class="broj-poglavlja">POGLAVLJE 8</p>
+    <h2>Jednostranična aplikacija</h2>
+
+    <p>
+      U klasičnoj web aplikaciji svaki klik traži novu HTML stranicu i
+      pretraživač je iscrta iz početka. U jednostraničnoj aplikaciji (SPA)
+      pretraživač jednom preuzme HTML i JavaScript, a posle toga sam menja
+      sadržaj i traži od servera samo podatke.
+    </p>
+
+    <figure>
+      <div class="okvir-svg">
+        <svg viewBox="0 0 940 350" role="img"
+          aria-label="Poređenje klasične navigacije i jednostranične aplikacije: klasična pri svakom kliku traži novu HTML stranicu, dok SPA jednom preuzme aplikaciju pa potom razmenjuje samo JSON">
+          <defs>
+            <marker id="str4" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <!-- KLASICNA -->
+          <text x="20" y="26" font-family="Consolas, monospace" font-size="11"
+            letter-spacing="1.3" fill="currentColor" opacity="0.7" font-weight="700">KLASIČNA NAVIGACIJA</text>
+
+          <rect x="20" y="42" width="120" height="112" rx="3"
+            fill="none" stroke="currentColor" stroke-width="1.5" />
+          <text x="80" y="72" font-size="12" text-anchor="middle"
+            fill="currentColor" font-family="Segoe UI, sans-serif" font-weight="600">Pretraživač</text>
+          <text x="80" y="94" font-size="10" text-anchor="middle"
+            fill="currentColor" opacity="0.6" font-family="Segoe UI, sans-serif">iscrtava iz početka</text>
+          <text x="80" y="112" font-size="10" text-anchor="middle"
+            fill="currentColor" opacity="0.6" font-family="Segoe UI, sans-serif">pri svakom kliku</text>
+
+          <rect x="800" y="42" width="120" height="112" rx="3"
+            fill="none" stroke="currentColor" stroke-width="1.5" />
+          <text x="860" y="72" font-size="12" text-anchor="middle"
+            fill="currentColor" font-family="Segoe UI, sans-serif" font-weight="600">Server</text>
+          <text x="860" y="94" font-size="10" text-anchor="middle"
+            fill="currentColor" opacity="0.6" font-family="Segoe UI, sans-serif">sastavlja HTML</text>
+          <text x="860" y="112" font-size="10" text-anchor="middle"
+            fill="currentColor" opacity="0.6" font-family="Segoe UI, sans-serif">za svaku stranicu</text>
+
+          <line x1="146" y1="66" x2="794" y2="66" stroke="currentColor"
+            stroke-width="1.5" marker-end="url(#str4)" />
+          <text x="470" y="58" font-family="Consolas, monospace" font-size="11"
+            text-anchor="middle" fill="currentColor">GET /narudzbine</text>
+
+          <line x1="794" y1="94" x2="146" y2="94" stroke="currentColor"
+            stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#str4)" />
+          <text x="470" y="86" font-family="Consolas, monospace" font-size="11"
+            text-anchor="middle" fill="currentColor">cela HTML stranica</text>
+
+          <line x1="146" y1="126" x2="794" y2="126" stroke="currentColor"
+            stroke-width="1.5" marker-end="url(#str4)" />
+          <text x="470" y="118" font-family="Consolas, monospace" font-size="11"
+            text-anchor="middle" fill="currentColor">GET /narudzbine/4</text>
+
+          <line x1="794" y1="152" x2="146" y2="152" stroke="currentColor"
+            stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#str4)" />
+          <text x="470" y="144" font-family="Consolas, monospace" font-size="11"
+            text-anchor="middle" fill="currentColor">opet cela HTML stranica</text>
+
+          <line x1="20" y1="186" x2="920" y2="186" stroke="currentColor"
+            stroke-width="1" opacity="0.3" />
+
+          <!-- SPA -->
+          <text x="20" y="216" font-family="Consolas, monospace" font-size="11"
+            letter-spacing="1.3" class="f-zahtev" font-weight="700">JEDNOSTRANIČNA APLIKACIJA</text>
+
+          <rect x="20" y="232" width="120" height="100" rx="3"
+            fill="none" class="s-zahtev" stroke-width="1.8" />
+          <text x="80" y="262" font-size="12" text-anchor="middle"
+            fill="currentColor" font-family="Segoe UI, sans-serif" font-weight="600">Vue u</text>
+          <text x="80" y="278" font-size="12" text-anchor="middle"
+            fill="currentColor" font-family="Segoe UI, sans-serif" font-weight="600">pretraživaču</text>
+          <text x="80" y="300" font-size="10" text-anchor="middle"
+            fill="currentColor" opacity="0.6" font-family="Segoe UI, sans-serif">sam menja prikaz</text>
+
+          <rect x="800" y="232" width="120" height="100" rx="3"
+            fill="none" stroke="currentColor" stroke-width="1.5" />
+          <text x="860" y="262" font-size="12" text-anchor="middle"
+            fill="currentColor" font-family="Segoe UI, sans-serif" font-weight="600">Flask</text>
+          <text x="860" y="284" font-size="10" text-anchor="middle"
+            fill="currentColor" opacity="0.6" font-family="Segoe UI, sans-serif">šalje samo</text>
+          <text x="860" y="300" font-size="10" text-anchor="middle"
+            fill="currentColor" opacity="0.6" font-family="Segoe UI, sans-serif">podatke</text>
+
+          <line x1="146" y1="252" x2="794" y2="252" stroke="currentColor"
+            stroke-width="1.5" marker-end="url(#str4)" />
+          <text x="470" y="244" font-family="Consolas, monospace" font-size="11"
+            text-anchor="middle" fill="currentColor">GET /  &#8212; samo prvi put</text>
+
+          <line x1="794" y1="278" x2="146" y2="278" stroke="currentColor"
+            stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#str4)" />
+          <text x="470" y="270" font-family="Consolas, monospace" font-size="11"
+            text-anchor="middle" fill="currentColor">index.html + JavaScript</text>
+
+          <line x1="146" y1="310" x2="794" y2="310" class="s-zahtev"
+            stroke-width="1.8" marker-end="url(#str4)" />
+          <text x="470" y="302" font-family="Consolas, monospace" font-size="11"
+            text-anchor="middle" class="f-zahtev" font-weight="700">GET /api/narudzbine/4</text>
+
+          <line x1="794" y1="336" x2="146" y2="336" class="s-odgovor"
+            stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#str4)" />
+          <text x="470" y="328" font-family="Consolas, monospace" font-size="11"
+            text-anchor="middle" class="f-odgovor" font-weight="700">JSON &#8212; bez HTML-a</text>
+        </svg>
+      </div>
+      <figcaption>
+        Razlika nije u broju zahteva nego u tome <b>šta se prenosi</b>. Klasična
+        navigacija pri svakom kliku ponovo dobija ceo dokument sa zaglavljem,
+        stilovima i celom stranicom. SPA to dobije jednom, a posle toga
+        razmenjuje samo podatke — pa server prestaje da bude sastavljač
+        stranica i postaje izvor podataka.
+      </figcaption>
+    </figure>
+
+    <h3>Klijentsko rutiranje i zamka pri osvežavanju</h3>
+
+    <p>
+      Vue Router menja adresu u traci pretraživača pomoću History API-ja, bez
+      slanja zahteva. Adresa <code>/narudzbine/4</code> tako postoji samo u
+      klijentu — server za nju nikada nije čuo.
+    </p>
+
+    <p>
+      Problem nastaje kad korisnik tu adresu osveži ili je otvori iz obeleživača.
+      Tada pretraživač <em>zaista</em> traži <code>GET /narudzbine/4</code> od
+      servera. Zato Flask mora imati pravilo koje sve nepoznate putanje vraća na
+      <code>index.html</code>, da bi se aplikacija podigla i sama odlučila šta
+      da prikaže.
+    </p>
+
+    <p class="naslov-koda">app.py</p>
+    <pre><code>@app.route("/", defaults={"putanja": ""})
+@app.route("/&lt;path:putanja&gt;")
+def klijentska_aplikacija(putanja):
+    if putanja.startswith("api/"):
+        return jsonify({"poruka": "Tražena API putanja ne postoji."}), 404
+    ...
+    return send_from_directory(PUTANJA_KLIJENTA, "index.html")</code></pre>
+
+    <p>
+      Provera na početku je važna: bez nje bi pogrešno otkucana API putanja
+      vratila HTML stranicu umesto <code>404</code>, pa bi klijent pokušao da
+      HTML raščlani kao JSON i dobio nejasnu grešku.
+    </p>
+  </section>
+
+  <!-- 9 -->
+  <section class="poglavlje" id="p9">
+    <p class="broj-poglavlja">POGLAVLJE 9</p>
+    <h2>Vue: deklarativan prikaz</h2>
+
+    <p>
+      Klasičan pristup je <em>imperativan</em>: nađi element, promeni mu
+      sadržaj. Vue je <em>deklarativan</em>: opišete kako prikaz izgleda za dato
+      stanje, a Vue se stara da se prikaz poklapa sa stanjem kad god se ono
+      promeni.
+    </p>
+
+    <p class="naslov-koda">NarudzbinaDetalji.vue</p>
+    <pre><code>&lt;tr v-for="stavka in narudzbina.stavke" :key="stavka.id"&gt;
+  &lt;td&gt;{{ stavka.proizvod_naziv }}&lt;/td&gt;
+  &lt;td class="desno"&gt;{{ dinari(stavka.iznos) }}&lt;/td&gt;
+&lt;/tr&gt;</code></pre>
+
+    <p>
+      Nigde ne piše „dodaj red u tabelu“. Piše samo kakav red odgovara jednoj
+      stavci. Kada se lista promeni, Vue sam izračuna razliku i izmeni onoliko
+      DOM-a koliko je potrebno.
+    </p>
+
+    <h3>Reaktivnost</h3>
+
+    <p>
+      Vue 3 obavija podatke u <code>Proxy</code> objekat koji beleži svako
+      čitanje i pisanje. Pri iscrtavanju pamti koja je komponenta koje podatke
+      pročitala; kada se podatak promeni, ponovo iscrtava samo one komponente
+      koje od njega zavise. Zato ne postoji poziv „osveži prikaz“.
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Alat</th>
+            <th scope="col">Čemu služi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row" class="mono">ref()</th>
+            <td>Reaktivna vrednost; čita se i menja preko <code>.value</code></td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">computed()</th>
+            <td>Izvedena vrednost koja se preračunava kad se izvor promeni</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">watch()</th>
+            <td>Pokreće radnju kada se praćena vrednost promeni</td>
+          </tr>
+          <tr>
+            <th scope="row" class="mono">onMounted()</th>
+            <td>Izvršava se kad komponenta uđe u DOM — mesto za prvo učitavanje</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      U formi za stavku sve to radi zajedno: <code>ref</code> drži izabrani
+      proizvod, <code>computed</code> računa koja cena važi i koliki je iznos, a
+      promena u <code>select</code> polju odmah povuče oba. Nema koda koji
+      „ažurira polje sa iznosom“ — iznos je izveden iz stanja i ne može zaostati
+      za njim.
+    </p>
+
+    <h3>Komponente</h3>
+
+    <p>
+      Komponenta je samostalan deo prikaza sa svojim stanjem i izgledom.
+      Podatke prima nadole kroz <strong>props</strong>, a nagore javlja
+      <strong>događajima</strong>. Taj jednosmerni tok znači da roditelj uvek
+      zna ko mu je promenio stanje.
+    </p>
+
+    <p class="naslov-koda">PotvrdaBrisanja.vue &#8212; upotreba</p>
+    <pre><code>&lt;PotvrdaBrisanja
+  :tekst="tekstPotvrde"
+  @potvrdi="potvrdiBrisanje"
+  @otkazi="zaBrisanje = null"
+/&gt;</code></pre>
+
+    <p>
+      Komponenta za potvrdu ne zna šta se briše niti kako — dobija tekst i javi
+      šta je korisnik izabrao. Zato ista komponenta služi i za narudžbinu i za
+      stavku i za proizvod. To je View koji ne sadrži poslovna pravila, upravo
+      kako MVP traži.
+    </p>
+  </section>
+
+  <!-- 10 -->
+  <section class="poglavlje" id="p10">
+    <p class="broj-poglavlja">POGLAVLJE 10</p>
+    <h2>Validacija i granica poverenja</h2>
+
+    <p>
+      Provera se javlja na dva mesta, i to nije udvajanje posla nego dve
+      različite svrhe.
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col"></th>
+            <th scope="col">Na klijentu</th>
+            <th scope="col">Na serveru</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Svrha</th>
+            <td>Brz odgovor korisniku</td>
+            <td>Zaštita podataka</td>
+          </tr>
+          <tr>
+            <th scope="row">Može se zaobići</th>
+            <td class="ne">da, lako</td>
+            <td class="da">ne</td>
+          </tr>
+          <tr>
+            <th scope="row">Sme li se izostaviti</th>
+            <td>Da, aplikacija i dalje radi</td>
+            <td>Nikada</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Zahtev ka API-ju može se poslati iz bilo kog programa — iz konzole, iz
+      skripte, iz alata za testiranje. Ništa od toga ne prolazi kroz Vue
+      komponentu i njena provera tu ne postoji. Zato Presenter proverava svaki
+      podatak ponovo, i tek onda dodiruje model.
+    </p>
+
+    <p class="naslov-koda">presenters/stavka_presenter.py</p>
+    <pre><code>vrednosti["kolicina"], greska = validacija.ceo_broj(
+    podaci, "kolicina", "Količina", minimum=1
+)
+if greska:
+    greske["kolicina"] = greska</code></pre>
+
+    <p>
+      Greške se vraćaju <strong>po poljima</strong>, a ne kao jedna rečenica.
+      Zahvaljujući tome klijent ne mora da pogađa na šta se poruka odnosi —
+      svaku ispisuje ispod svog polja i to polje oboji crveno.
+    </p>
+
+    <p class="naslov-koda">Odgovor 400</p>
+    <pre><code>{
+  "greske": {
+    "kolicina": "Količina ne može biti manja od 1.",
+    "proizvod_id": "Izabrani proizvod nije dostupan za poručivanje."
+  }
+}</code></pre>
+
+    <div class="blok kljucno">
+      <p class="blok-naslov">Tri nivoa odbrane</p>
+      <p>
+        Ista postavka često se štiti na tri mesta, i svako ima svoju ulogu.
+        <code>min="1"</code> u HTML polju sprečava greh iz nepažnje. Provera u
+        Presenteru sprečava neispravan zahtev odakle god došao. Ograničenje u
+        bazi sprečava da neispravan podatak uđe čak i ako aplikacija ima grešku.
+      </p>
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section class="poglavlje" id="p11">
+    <p class="broj-poglavlja">POGLAVLJE 11</p>
+    <h2>Izvor, same-origin i CORS</h2>
+
+    <p>
+      <strong>Izvor</strong> (origin) je trojka: šema, host i port.
+      <code>http://localhost:5000</code> i <code>http://localhost:5173</code>
+      su različiti izvori, iako je host isti — razlikuje ih port.
+    </p>
+
+    <p>
+      Pravilo istog izvora (same-origin policy) je ugrađeno u pretraživač: kod
+      sa jednog izvora ne sme čitati odgovore sa drugog. Bez toga bi bilo koja
+      stranica mogla u vašoj sesiji da čita tuđe podatke.
+    </p>
+
+    <p>
+      <strong>CORS</strong> je način da server svesno napravi izuzetak.
+      Zaglavljem <code>Access-Control-Allow-Origin</code> kaže pretraživaču koji
+      strani izvori smeju da mu pristupe. Za metode poput <code>PUT</code> i
+      <code>DELETE</code> pretraživač prvo šalje probni <code>OPTIONS</code>
+      zahtev i tek po dobijanju dozvole šalje pravi.
+    </p>
+
+    <h3>Kako je to rešeno ovde</h3>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Režim</th>
+            <th scope="col">Postavka</th>
+            <th scope="col">Da li je CORS potreban</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Prezentacija</th>
+            <td>Flask servira i API i izgrađeni klijent na portu 5000</td>
+            <td class="da">ne &#8212; isti izvor</td>
+          </tr>
+          <tr>
+            <th scope="row">Razvoj</th>
+            <td>Vite na 5173 prosleđuje <code>/api</code> Flask-u</td>
+            <td class="da">ne &#8212; pretraživač vidi samo 5173</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Zato klijent svuda poziva relativnu putanju <code>/api/...</code> i nikad
+      ne zna na kom portu je server. Podešavanje <code>Flask-Cors</code> u
+      <code>app.py</code> stoji samo kao pojas sigurnosti ako se klijent
+      pokrene odvojeno.
+    </p>
+
+    <p class="naslov-koda">vite.config.js</p>
+    <pre><code>server: {
+  port: 5173,
+  proxy: {
+    "/api": { target: "http://localhost:5000", changeOrigin: true },
+  },
+}</code></pre>
+  </section>
+
+  <!-- 12 -->
+  <section class="poglavlje" id="p12">
+    <p class="broj-poglavlja">POGLAVLJE 12</p>
+    <h2>Kako se sve slaže u MVP</h2>
+
+    <p>
+      Svaki pojam iz prethodnih poglavlja stoji na tačno određenom mestu u
+      podeli Model – View – Presenter.
+    </p>
+
+    <div class="okvir-tabele">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Sloj</th>
+            <th scope="col">Tehnologije</th>
+            <th scope="col">Šta je njegovo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Model</th>
+            <td>SQLAlchemy, MySQL</td>
+            <td>Entiteti, relacije, ograničenja, izvedeni podaci, transakcije</td>
+          </tr>
+          <tr>
+            <th scope="row">Presenter</th>
+            <td>Flask, blueprints</td>
+            <td>Rutiranje, validacija, statusni kodovi, serijalizacija u JSON</td>
+          </tr>
+          <tr>
+            <th scope="row">View</th>
+            <td>Vue, Vue Router</td>
+            <td>Prikaz, reaktivnost, klijentsko rutiranje, korisnički događaji</td>
+          </tr>
+          <tr>
+            <th scope="row">Granica</th>
+            <td>HTTP, JSON</td>
+            <td>Jedini kanal između View-a i Presentera</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Vrednost te podele nije uredan raspored fajlova nego to što svaki sloj
+      možete promeniti bez ostalih. Zamena Vue-a drugim klijentom ne dira
+      Presenter jer je granica HTTP. Prelazak sa MySQL-a na PostgreSQL ne dira
+      View jer View nikada nije video SQL. Dodavanje mobilne aplikacije ne
+      traži nijednu izmenu — ona jednostavno pozove isti API.
+    </p>
+
+    <div class="blok kljucno">
+      <p class="blok-naslov">Rečenica za odbranu</p>
+      <p>
+        REST API je ovde ono što MVP naziva Presenterom, izloženo preko HTTP-a.
+        Vue komponenta je View koji nema pristup modelu; SQLAlchemy entiteti su
+        Model koji ne zna da interfejs postoji. Sve što korisnik vidi prošlo je
+        kroz Presenter, i to je jedina veza između ta dva kraja.
+      </p>
+    </div>
+  </section>
+
+  <!-- 13 -->
+  <section class="poglavlje" id="p13">
+    <p class="broj-poglavlja">POGLAVLJE 13</p>
+    <h2>Pojmovnik</h2>
+
+    <dl class="pojmovnik">
+      <div class="pojam">
+        <dt>API</dt>
+        <dd>Dogovoreni skup tačaka preko kojih jedan program koristi drugi.</dd>
+      </div>
+      <div class="pojam">
+        <dt>Bezstanjnost</dt>
+        <dd>Server ne pamti kontekst između dva zahteva istog klijenta.</dd>
+      </div>
+      <div class="pojam">
+        <dt>Blueprint</dt>
+        <dd>Flask grupa ruta sa zajedničkim prefiksom; ovde jedan Presenter.</dd>
+      </div>
+      <div class="pojam">
+        <dt>CORS</dt>
+        <dd>Način da server dozvoli pristup sa drugog izvora.</dd>
+      </div>
+      <div class="pojam">
+        <dt>Idempotentnost</dt>
+        <dd>Ponovljen zahtev ostavlja server u istom stanju kao jedan poziv.</dd>
+      </div>
+      <div class="pojam">
+        <dt>Izvor (origin)</dt>
+        <dd>Trojka šema, host i port; određuje granicu poverenja u pretraživaču.</dd>
+      </div>
+      <div class="pojam">
+        <dt>Jedinica posla</dt>
+        <dd>Obrazac u kom se sve izmene sakupljaju i primenjuju kao jedna transakcija.</dd>
+      </div>
+      <div class="pojam">
+        <dt>ORM</dt>
+        <dd>Preslikavanje klasa na tabele i instanci na redove.</dd>
+      </div>
+      <div class="pojam">
+        <dt>Referencijalni integritet</dt>
+        <dd>Jemstvo da strani ključ pokazuje na postojeći red.</dd>
+      </div>
+      <div class="pojam">
+        <dt>Reprezentacija</dt>
+        <dd>Konkretan zapis resursa koji putuje mrežom, ovde JSON.</dd>
+      </div>
+      <div class="pojam">
+        <dt>Resurs</dt>
+        <dd>Imenovana stvar kojoj se pristupa preko URI-ja.</dd>
+      </div>
+      <div class="pojam">
+        <dt>Serijalizacija</dt>
+        <dd>Pretvaranje objekta u zapis koji se može preneti ili sačuvati.</dd>
+      </div>
+      <div class="pojam">
+        <dt>SPA</dt>
+        <dd>Aplikacija koja se učita jednom, a potom razmenjuje samo podatke.</dd>
+      </div>
+      <div class="pojam">
+        <dt>Transakcija</dt>
+        <dd>Niz operacija nad bazom koji uspeva ili pada kao celina.</dd>
+      </div>
+    </dl>
+  </section>
+
+  <p class="podnozje">
+    HTTP &#183; REST &#183; JSON &#183; Flask &#183; SQLAlchemy &#183; MySQL
+    &#183; Vue &#183; Model &#183; View &#183; Presenter
+  </p>
+</div>
+</body>
+</html>
