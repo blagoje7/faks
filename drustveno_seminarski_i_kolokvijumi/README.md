@@ -4,6 +4,7 @@
 seminarski_i_kolokvijumi/
 ├── seminarski/
 │   ├── seminarski.ipynb          glavni rad (izvršen, sa rezultatima i grafikonima)
+│   ├── ODBRANA.md                skripta za odbranu — šta se priča i pitanja
 │   ├── seminarski.pdf            isti rad u PDF-u — 19 strana
 │   ├── seminarski.html           međukorak ka PDF-u, može se otvoriti u pregledaču
 │   ├── data/recenzije.csv        45.070 Steam recenzija
@@ -36,6 +37,11 @@ odgovara na pitanje da li iskustvo sa proizvodom menja ton recenzije.
    recenzije duže od 200 reči padaju ispod 50%
 4. Zaključak: vidljiva slika proizvoda sistematski odstupa od stvarnog raspoloženja
    korisnika, zbog načina na koji platforma rangira recenzije
+
+`ODBRANA.md` je priprema za odbranu: redosled izlaganja poglavlje po poglavlje, brojevi
+koje treba znati napamet, pitanja sa odgovorima i tri slabosti rada sa spremnom odbranom.
+Svaki alat upotrebljen u radu je u njemu povezan sa celinom u `kolokvijumi_priprema/` gde
+je ta teorija objašnjena.
 
 Za ponovno pravljenje PDF-a:
 
