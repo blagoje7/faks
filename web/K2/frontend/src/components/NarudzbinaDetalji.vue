@@ -17,7 +17,7 @@ const narudzbina = ref(null);
 const ucitava = ref(true);
 const greska = ref("");
 
-// Pamti se i vrsta entiteta jer narudžbina i stavka mogu imati isti id.
+// vrsta se pamti jer narudzbina i stavka mogu imati isti id
 const zaBrisanje = ref(null);
 
 async function ucitaj() {
@@ -45,7 +45,7 @@ const tekstPotvrde = computed(() => {
   if (vrsta === "narudzbina") {
     return tekstBrisanjaNarudzbine(stavka);
   }
-  return `Ukloniti stavku „${stavka.proizvod_naziv}“ sa ove narudžbine?`;
+  return `Ukloniti stavku "${stavka.proizvod_naziv}" sa ove narudzbine?`;
 });
 
 async function potvrdiBrisanje() {
@@ -70,12 +70,12 @@ async function potvrdiBrisanje() {
 </script>
 
 <template>
-  <p v-if="ucitava" class="muted">Učitavanje...</p>
+  <p v-if="ucitava" class="muted">Ucitavanje...</p>
 
   <div v-else-if="greska" class="empty">
     <h2>{{ greska }}</h2>
     <RouterLink class="button secondary" to="/narudzbine">
-      Nazad na narudžbine
+      Nazad na narudzbine
     </RouterLink>
   </div>
 
@@ -83,11 +83,11 @@ async function potvrdiBrisanje() {
     <div class="page-title">
       <div>
         <p class="eyebrow">Master-detail prikaz</p>
-        <h1>Narudžbina {{ narudzbina.broj }}</h1>
+        <h1>Narudzbina {{ narudzbina.broj }}</h1>
       </div>
       <div class="actions right">
         <RouterLink class="button secondary" :to="`/narudzbine/${narudzbina.id}/izmeni`">
-          Izmeni narudžbinu
+          Izmeni narudzbinu
         </RouterLink>
         <RouterLink class="button" :to="`/narudzbine/${narudzbina.id}/stavke/nova`">
           Dodaj stavku
@@ -97,7 +97,7 @@ async function potvrdiBrisanje() {
 
     <section class="card details">
       <div class="zaglavlje-kartice">
-        <h2>Podaci o narudžbini</h2>
+        <h2>Podaci o narudzbini</h2>
         <span :class="['pilula', narudzbina.status]">
           {{ narudzbina.status_naziv }}
         </span>
@@ -108,7 +108,7 @@ async function potvrdiBrisanje() {
           <strong>{{ narudzbina.kupac }}</strong>
         </div>
         <div>
-          <span>Elektronska pošta</span>
+          <span>Elektronska posta</span>
           <strong>{{ narudzbina.email }}</strong>
         </div>
         <div>
@@ -127,7 +127,7 @@ async function potvrdiBrisanje() {
     </section>
 
     <section class="section-heading">
-      <h2>Stavke narudžbine</h2>
+      <h2>Stavke narudzbine</h2>
     </section>
 
     <div v-if="narudzbina.stavke.length" class="table-card">
@@ -135,7 +135,7 @@ async function potvrdiBrisanje() {
         <thead>
           <tr>
             <th>Proizvod</th>
-            <th class="desno">Količina</th>
+            <th class="desno">Kolicina</th>
             <th class="desno">Cena po komadu</th>
             <th class="desno">Iznos</th>
             <th>Akcije</th>
@@ -143,7 +143,12 @@ async function potvrdiBrisanje() {
         </thead>
         <tbody>
           <tr v-for="stavka in narudzbina.stavke" :key="stavka.id">
-            <td>{{ stavka.proizvod_naziv }}</td>
+            <td>
+              {{ stavka.proizvod_naziv }}
+              <span v-if="stavka.arhivirana" class="pilula arhivirana">
+                nije vise u sifarniku
+              </span>
+            </td>
             <td class="desno brojevi">
               {{ stavka.kolicina }} {{ stavka.jedinica_mere }}
             </td>
@@ -174,20 +179,20 @@ async function potvrdiBrisanje() {
     </div>
 
     <div v-else class="empty">
-      <h2>Ova narudžbina još nema stavki.</h2>
+      <h2>Ova narudzbina jos nema stavki.</h2>
       <p>Dodajte prvu stavku da bi master-detail prikaz bio potpun.</p>
     </div>
 
     <div class="actions">
       <RouterLink class="button secondary" to="/narudzbine">
-        Nazad na narudžbine
+        Nazad na narudzbine
       </RouterLink>
       <button
         type="button"
         class="button opasno"
         @click="zaBrisanje = { vrsta: 'narudzbina', stavka: narudzbina }"
       >
-        Obriši narudžbinu
+        Obrisi narudzbinu
       </button>
     </div>
 

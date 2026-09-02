@@ -37,9 +37,11 @@ Dva strana ključa namerno se ponašaju različito, i to je suština modela:
 - **`narudzbina_id` → `ON DELETE CASCADE`.** Stavka je podređena narudžbini.
   Nema smisla van nje, pa se briše zajedno sa njom.
 - **`proizvod_id` → `ON DELETE RESTRICT`.** Proizvod je šifarnik, a ne
-  roditelj. Stavka ga referiše, ali ga ne posedeuje, i on ne sme nestati
-  ispod postojećih narudžbina. Brisanje upotrebljenog proizvoda vraća
-  `409 Conflict` sa objašnjenjem.
+  roditelj. Stavka ga referiše, ali ga ne poseduje, i on ne sme nestati
+  ispod narudžbine koja je još u toku. Brisanje takvog proizvoda vraća
+  `409 Conflict` sa objašnjenjem. Kada proizvod stoji **samo na isporučenim**
+  narudžbinama, Presenter najpre prekine vezu (`proizvod_id` postaje `NULL`),
+  pa tek onda briše proizvod — stavke ostaju sa zapamćenim nazivom i cenom.
 
 Izvedeni podaci se **računaju, a ne čuvaju**: `broj_stavki` i `ukupan_iznos`
 narudžbine izvode se iz njenih stavki, a `iznos` stavke iz količine i cene.
@@ -61,16 +63,23 @@ prevodi poziv u HTTP zahtev i odgovor u greške po poljima.
 
 ## Poslovna pravila
 
-1. **Cena se pamti u trenutku poručivanja.** `stavka.cena_po_komadu` se
-   prepisuje iz šifarnika kada se stavka kreira ili kada joj se promeni
-   proizvod. Izmena količine ne dira zapamćenu cenu, a kasnija promena
-   cenovnika ne menja iznose ranijih narudžbina.
-2. **Proizvod se na jednoj narudžbini pojavljuje najviše jednom.** Umesto
+1. **Cena, naziv i jedinica mere pamte se u trenutku poručivanja.**
+   `stavka.cena_po_komadu`, `stavka.proizvod_naziv` i `stavka.jedinica_mere`
+   prepisuju se iz šifarnika kada se stavka kreira ili kada joj se promeni
+   proizvod. Izmena količine ih ne dira, a kasnija promena cenovnika ne menja
+   iznose ranijih narudžbina.
+2. **Proizvod se briše samo ako više ni na jednoj narudžbini u toku nije.**
+   Ako stoji na narudžbini u statusu *u pripremi* ili *potvrđena*, brisanje se
+   odbija sa `409`. Ako stoji samo na *isporučenim* narudžbinama, Presenter
+   prekine vezu (`proizvod_id` postaje `NULL`) pa obriše proizvod — stavke
+   ostaju sa zapamćenim podacima i iznos isporučene narudžbine se ne menja.
+   U prikazu takva stavka nosi oznaku „nije više u šifarniku”.
+3. **Proizvod se na jednoj narudžbini pojavljuje najviše jednom.** Umesto
    drugog reda, menja se količina postojeće stavke.
-3. **Nedostupan proizvod ne može se poručiti**, ali stavke koje ga već
+4. **Nedostupan proizvod ne može se poručiti**, ali stavke koje ga već
    sadrže ostaju netaknute.
-4. **Datum narudžbine ne može biti u budućnosti.**
-5. **Broj narudžbine je jedinstven.** Server predlaže sledeći slobodan broj
+5. **Datum narudžbine ne može biti u budućnosti.**
+6. **Broj narudžbine je jedinstven.** Server predlaže sledeći slobodan broj
    u obliku `NAR-GGGG-NNNN`, a korisnik ga može promeniti.
 
 ---
@@ -88,7 +97,7 @@ prevodi poziv u HTTP zahtev i odgovor u greške po poljima.
 **1. Konfiguracija baze**
 
 ```bash
-copy backend\.env.example backend\.env
+copy K2\backend\.env.example K2\backend\.env
 ```
 
 Otvorite `backend\.env` i upišite svoju MySQL lozinku.
@@ -96,13 +105,13 @@ Otvorite `backend\.env` i upišite svoju MySQL lozinku.
 **2. Python okruženje**
 
 ```bash
-cd backend && python -m venv venv && venv\Scripts\pip install -r requirements.txt
+cd K2\backend && python -m venv venv && venv\Scripts\pip install -r requirements.txt
 ```
 
 **3. Kreiranje baze i početnih podataka**
 
 ```bash
-cd backend && venv\Scripts\python kreiraj_bazu.py
+cd K2\backend && venv\Scripts\python kreiraj_bazu.py
 ```
 
 Skripta traži lozinku ako nije upisana u `.env`, i na kraju ispisuje broj
@@ -111,7 +120,7 @@ unetih redova.
 **4. Build klijentske aplikacije**
 
 ```bash
-cd frontend && npm install && npm run build
+cd K2\frontend && npm install && npm run build
 ```
 
 Build se upisuje u `backend/static/`, pa Flask servira i API i klijent.
@@ -123,7 +132,7 @@ Build se upisuje u `backend/static/`, pa Flask servira i API i klijent.
 Jedan server, jedna komanda:
 
 ```bash
-cd backend && venv\Scripts\python app.py
+cd K2\backend && venv\Scripts\python app.py
 ```
 
 Aplikacija je na **http://localhost:5000**.
@@ -138,11 +147,11 @@ Provera pre izlaganja — `http://localhost:5000/api/stanje` mora vratiti
 Dva terminala, sa automatskim osvežavanjem klijenta:
 
 ```bash
-cd backend && venv\Scripts\python app.py
+cd K2\backend && venv\Scripts\python app.py
 ```
 
 ```bash
-cd frontend && npm run dev
+cd K2\frontend && npm run dev
 ```
 
 Klijent je na `http://localhost:5173` i prosleđuje `/api` zahteve Flask-u,
@@ -161,7 +170,7 @@ pa se putanje ne razlikuju od produkcijskih.
 | `GET` | `/api/proizvodi/<id>` | Jedan proizvod |
 | `POST` | `/api/proizvodi` | Nov proizvod |
 | `PUT` | `/api/proizvodi/<id>` | Izmena |
-| `DELETE` | `/api/proizvodi/<id>` | Brisanje; `409` ako se koristi na stavkama |
+| `DELETE` | `/api/proizvodi/<id>` | Brisanje; `409` ako stoji na narudžbini koja je u toku |
 
 ### Narudžbine
 
@@ -193,7 +202,7 @@ pa se putanje ne razlikuju od produkcijskih.
 | `201` | Resurs je kreiran |
 | `400` | Neispravan unos; telo sadrži `greske` po poljima |
 | `404` | Traženi entitet ne postoji |
-| `409` | Radnja je u sukobu sa stanjem podataka (brisanje upotrebljenog proizvoda) |
+| `409` | Radnja je u sukobu sa stanjem podataka (brisanje proizvoda iz narudžbine u toku) |
 | `503` | Baza nije dostupna |
 
 Greške validacije vraćaju se po poljima, pa klijent svaku ispisuje ispod
@@ -224,10 +233,10 @@ odgovarajućeg polja:
 ## Samoprovera
 
 ```bash
-cd backend && venv\Scripts\python provera_api.py
+cd K2\backend && venv\Scripts\python provera_api.py
 ```
 
-Pokreće 52 provere nad celim API-jem (CRUD, kaskadno brisanje, RESTRICT,
+Pokreće 62 provere nad celim API-jem (CRUD, kaskadno brisanje, RESTRICT,
 zapamćena cena, premeštanje stavki, validacija, statusni kodovi, SPA
 rutiranje). Radi nad privremenom SQLite bazom, pa ne dira MySQL podatke.
 

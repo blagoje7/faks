@@ -5,13 +5,13 @@ import { poruke, ukloniPoruku } from "@/poruke";
 <template>
   <header class="topbar">
     <div class="container nav">
-      <RouterLink class="logo" to="/">Narudžbine</RouterLink>
+      <RouterLink class="logo" to="/">Narudzbine</RouterLink>
       <nav>
-        <RouterLink to="/">Početna</RouterLink>
-        <RouterLink to="/narudzbine">Narudžbine</RouterLink>
+        <RouterLink to="/">Pocetna</RouterLink>
+        <RouterLink to="/narudzbine">Narudzbine</RouterLink>
         <RouterLink to="/proizvodi">Proizvodi</RouterLink>
         <RouterLink class="button small" to="/narudzbine/nova">
-          Nova narudžbina
+          Nova narudzbina
         </RouterLink>
       </nav>
     </div>

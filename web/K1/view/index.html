@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Evidencija narudzbina</title>
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+
+<header class="zaglavlje">
+  <h1>Evidencija narudzbina</h1>
+  <p>Narudzbina i njene stavke, uz proizvod kao sifarnik.</p>
+</header>
+
+<main class="sadrzaj">
+
+  <section class="kartica">
+    <h2>Narudzbine <span class="uloga">master</span></h2>
+    <table class="tabela">
+      <thead>
+        <tr>
+          <th>Broj</th><th>Kupac</th><th>Datum</th><th>Status</th>
+          <th class="desno">Stavki</th><th class="desno">Iznos</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="telo-narudzbina"></tbody>
+    </table>
+  </section>
+
+  <section class="kartica" id="kartica-detalja" hidden>
+    <h2>Stavke narudzbine <span class="uloga">detail</span></h2>
+    <p class="opis" id="opis-narudzbine"></p>
+
+    <table class="tabela">
+      <thead>
+        <tr>
+          <th>Proizvod</th><th class="desno">Kolicina</th>
+          <th class="desno">Cena po komadu</th><th class="desno">Iznos</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="telo-stavki"></tbody>
+      <tfoot id="podnozje-stavki"></tfoot>
+    </table>
+
+    <form id="forma-stavke" class="forma" novalidate>
+      <h3>Dodaj stavku</h3>
+
+      <label>
+        Proizvod
+        <select name="proizvod_id" id="izbor-proizvoda"></select>
+        <span class="greska" data-greska="proizvod_id"></span>
+      </label>
+
+      <label>
+        Kolicina
+        <input type="number" name="kolicina" id="unos-kolicine" min="1" value="1">
+        <span class="greska" data-greska="kolicina"></span>
+      </label>
+
+      <button type="submit" class="dugme">Sacuvaj stavku</button>
+    </form>
+  </section>
+
+  <section class="kartica">
+    <h2>Proizvodi <span class="uloga">sifarnik</span></h2>
+    <table class="tabela">
+      <thead>
+        <tr><th>Naziv</th><th class="desno">Cena</th><th>Jedinica mere</th><th></th></tr>
+      </thead>
+      <tbody id="telo-proizvoda"></tbody>
+    </table>
+  </section>
+
+</main>
+
+<div class="obavestenje" id="obavestenje" hidden></div>
+
+<script type="module" src="view.js"></script>
+</body>
+</html>

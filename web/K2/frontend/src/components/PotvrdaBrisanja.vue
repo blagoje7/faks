@@ -1,6 +1,5 @@
 <script setup>
-// Pitanje za potvrdu brisanja generiše se u potpunosti na klijentu,
-// bez odlaska na server i bez ugrađenog confirm() dijaloga pretraživača.
+// potvrda se generise na klijentu, bez confirm() dijaloga
 defineProps({
   naslov: { type: String, default: "Potvrda brisanja" },
   tekst: { type: String, required: true },
@@ -19,7 +18,7 @@ defineEmits(["potvrdi", "otkazi"]);
           Odustani
         </button>
         <button class="button opasno" type="button" @click="$emit('potvrdi')">
-          Obriši
+          Obrisi
         </button>
       </div>
     </div>

@@ -14,12 +14,10 @@ PUTANJA_KLIJENTA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sta
 
 
 def create_app(config_object=Config):
-    # Flask servira samo /assets (fajlove koje generiše Vite build), da njegova
-    # static ruta ne bi presrela duboke putanje namenjene Vue Routeru.
     app = Flask(
         __name__,
         static_folder=os.path.join(PUTANJA_KLIJENTA, "assets"),
-        static_url_path="/assets",
+        static_url_path="/assets",  # da static ruta ne presretne Vue Router
     )
     app.config.from_object(config_object)
 
@@ -37,12 +35,12 @@ def create_app(config_object=Config):
 
 
 def registruj_greske(app):
-    """API greške moraju biti JSON, a ne Flask HTML stranica."""
+    """API greske kao JSON, ne kao HTML."""
 
     @app.errorhandler(404)
     def nije_pronadjeno(greska):
         if request.path.startswith("/api/"):
-            return jsonify({"poruka": "Tražena putanja ne postoji."}), 404
+            return jsonify({"poruka": "Trazena putanja ne postoji."}), 404
         return greska
 
     @app.errorhandler(405)
@@ -51,15 +49,14 @@ def registruj_greske(app):
 
     @app.errorhandler(Exception)
     def neocekivana_greska(greska):
-        app.logger.exception("Neočekivana greška")
+        app.logger.exception("Neocekivana greska")
         db.session.rollback()
         if request.path.startswith("/api/"):
-            return jsonify({"poruka": f"Greška na serveru: {greska}"}), 500
+            return jsonify({"poruka": f"Greska na serveru: {greska}"}), 500
         raise greska
 
     @app.get("/api/stanje")
     def stanje():
-        """Provera veze sa bazom pre prezentacije."""
         try:
             db.session.execute(text("SELECT 1"))
             return jsonify({"baza": "povezana"})
@@ -68,18 +65,13 @@ def registruj_greske(app):
 
 
 def registruj_klijenta(app):
-    """Servira izgrađenu Vue aplikaciju iz static/.
-
-    Sve putanje koje nisu API i nisu postojeći fajl vraćaju index.html,
-    da bi Vue Router mogao da preuzme rutiranje na klijentu.
-    """
+    """Nepoznate putanje vracaju index.html, da rutiranje preuzme Vue Router."""
 
     @app.route("/", defaults={"putanja": ""})
     @app.route("/<path:putanja>")
     def klijentska_aplikacija(putanja):
-        # Nepoznata API putanja ne sme da vrati klijentsku stranicu.
         if putanja.startswith("api/"):
-            return jsonify({"poruka": "Tražena API putanja ne postoji."}), 404
+            return jsonify({"poruka": "Trazena API putanja ne postoji."}), 404
 
         if putanja and os.path.isfile(os.path.join(PUTANJA_KLIJENTA, putanja)):
             return send_from_directory(PUTANJA_KLIJENTA, putanja)
@@ -89,7 +81,7 @@ def registruj_klijenta(app):
             return (
                 jsonify(
                     {
-                        "poruka": "Vue klijent nije izgrađen.",
+                        "poruka": "Vue klijent nije izgradjen.",
                         "resenje": "U folderu frontend/ pokrenite: npm install && npm run build",
                     }
                 ),

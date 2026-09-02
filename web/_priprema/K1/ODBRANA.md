@@ -112,12 +112,14 @@ Dijagram: [`dijagrami/02-mvp-slojevi.svg`](dijagrami/02-mvp-slojevi.svg)
 
 ### Mapa na kod
 
-| Sloj | Gde živi |
-|---|---|
-| Model | `K2/backend/models.py` — SQLAlchemy entiteti |
-| Presenter | `K2/backend/presenters/` — Flask blueprints |
-| View | `K2/frontend/src/components/` — Vue komponente |
-| Granica | HTTP + JSON; jedini kanal je `K2/frontend/src/api.js` |
+Uz ovaj dokument ide i aplikacija u folderu [`K1/`](../../K1) — namerno svedena, sa jednim fajlom po sloju, da se podela može pokazati otvaranjem fajlova.
+
+| Sloj | Aplikacija uz K1 | Puna implementacija (K2) |
+|---|---|---|
+| Model | `K1/model.py` | `K2/backend/models.py` — SQLAlchemy entiteti |
+| Presenter | `K1/presenter.py` | `K2/backend/presenters/` — Flask blueprints |
+| View | `K1/view/` | `K2/frontend/src/components/` — Vue komponente |
+| Granica | `K1/granica.py`, `K1/view/api.js` | HTTP + JSON; jedini kanal je `K2/frontend/src/api.js` |
 
 Zavisnosti idu samo nadole. Presenter je jedini sloj koji zna za oba susedna — View ne zna za model, model ne zna za View. **Uklanjanje Presentera prekida svaku vezu između njih, i to je merilo da je podela sprovedena.**
 
@@ -209,10 +211,12 @@ Bolje je ovo reći sam nego čekati da bude izvučeno kao zamerka.
 | Min | Tema | Šta pokazati |
 |---|---|---|
 | 0–1 | Domen i zašto je master-detail | Zavisnost životnog veka stavke od narudžbine |
-| 1–4 | Model podataka | Dijagram 01; naglasiti CASCADE vs RESTRICT i zapamćenu cenu |
-| 4–7 | MVP pattern | Dijagram 02; tabela poređenja sa MVC |
-| 7–9 | Tok ažuriranja | Dijagram 03; naglasiti da cenu upisuje server |
+| 1–3 | Model podataka | Dijagram 01; naglasiti CASCADE vs RESTRICT i zapamćenu cenu |
+| 3–5 | MVP pattern | Dijagram 02; tabela poređenja sa MVC |
+| 5–9 | **Kod** | Otvarati fajlove iz `K1/` redom iz [`APLIKACIJA.md`](APLIKACIJA.md): `model.py` → `presenter.py` → `granica.py` → `view/api.js` → `view/view.js` |
 | 9–10 | Zaključak | Šta se može zameniti bez diranja ostalog |
+
+Aplikacija se pre izlaganja pokreće sa `cd K1 && python pokreni.py` i ostaje otvorena u pretraživaču, da se uz kod odmah vidi i posledica: brisanje narudžbine odnosi stavke, brisanje upotrebljenog proizvoda biva odbijeno.
 
 **Prva rečenica:** „Domen je evidencija narudžbina. Narudžbina je nadređeni entitet, stavka podređeni, a proizvod je šifarnik koji namerno stoji van te veze — i ta razlika se vidi u tome kako su podešena dva strana ključa u istoj tabeli.”
 
@@ -223,6 +227,7 @@ Bolje je ovo reći sam nego čekati da bude izvučeno kao zamerka.
 | Fajl | Sadržaj |
 |---|---|
 | `ODBRANA.md` | ovaj dokument |
+| [`APLIKACIJA.md`](APLIKACIJA.md) | pokretanje aplikacije iz [`K1/`](../../K1), mapa fajlova i redosled njihovog otvaranja pri izlaganju |
 | `prezentacija.html` | ista sadržina u obliku za prikaz na ekranu; otvara se dvoklikom, radi bez interneta |
 | `dijagrami/01-model-podataka.svg` | ER dijagram sa CASCADE i RESTRICT granama |
 | `dijagrami/02-mvp-slojevi.svg` | Raspored odgovornosti po slojevima |
@@ -230,4 +235,4 @@ Bolje je ovo reći sam nego čekati da bude izvučeno kao zamerka.
 
 SVG fajlovi se mogu ubaciti u PowerPoint (Insert → Pictures) i skaliraju se bez gubitka oštrine.
 
-Implementacija koja prati ovu arhitekturu je u folderu [`../K2`](../K2).
+Implementacija koja prati ovu arhitekturu je u folderu [`K2/`](../../K2).

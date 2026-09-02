@@ -1,4 +1,4 @@
-"""Provera ulaznih podataka pre nego što presenter dodirne model."""
+"""Provera ulaznih podataka pre nego sto presenter dodirne model."""
 
 from datetime import date
 
@@ -9,7 +9,7 @@ def tekst(podaci, polje, naziv_polja, maksimum=None):
     if not vrednost:
         return None, f"{naziv_polja} je obavezan podatak."
     if maksimum and len(vrednost) > maksimum:
-        return None, f"{naziv_polja} može imati najviše {maksimum} karaktera."
+        return None, f"{naziv_polja} moze imati najvise {maksimum} karaktera."
 
     return vrednost, None
 
@@ -20,7 +20,7 @@ def eposta(podaci, polje, naziv_polja):
         return None, greska
 
     if "@" not in vrednost or "." not in vrednost.split("@")[-1]:
-        return None, f"{naziv_polja} mora biti ispravna adresa elektronske pošte."
+        return None, f"{naziv_polja} mora biti ispravna adresa elektronske poste."
 
     return vrednost, None
 
@@ -37,7 +37,7 @@ def ceo_broj(podaci, polje, naziv_polja, minimum=None):
         return None, f"{naziv_polja} mora biti ceo broj."
 
     if minimum is not None and broj < minimum:
-        return None, f"{naziv_polja} ne može biti manji od {minimum}."
+        return None, f"{naziv_polja} ne moze biti manji od {minimum}."
 
     return broj, None
 
@@ -54,7 +54,7 @@ def decimalni_broj(podaci, polje, naziv_polja, minimum=None):
         return None, f"{naziv_polja} mora biti broj."
 
     if minimum is not None and broj < minimum:
-        return None, f"{naziv_polja} ne može biti manji od {minimum}."
+        return None, f"{naziv_polja} ne moze biti manji od {minimum}."
 
     return broj, None
 
@@ -71,7 +71,7 @@ def datum(podaci, polje, naziv_polja, bez_buducnosti=False):
         return None, f"{naziv_polja} mora biti u obliku GGGG-MM-DD."
 
     if bez_buducnosti and vrednost > date.today():
-        return None, f"{naziv_polja} ne može biti u budućnosti."
+        return None, f"{naziv_polja} ne moze biti u buducnosti."
 
     return vrednost, None
 

@@ -54,7 +54,7 @@ async function obrisi() {
     dodajPoruku(odgovor.poruka);
     await ucitaj();
   } catch (problem) {
-    // Status 409 znači da proizvod stoji na nekoj stavci, pa se ne briše.
+    // 409: proizvod stoji na nekoj stavci
     dodajPoruku(problem.message, "greska");
   }
 }
@@ -63,7 +63,7 @@ async function obrisi() {
 <template>
   <div class="page-title">
     <div>
-      <p class="eyebrow">Šifarnik</p>
+      <p class="eyebrow">Sifarnik</p>
       <h1>Proizvodi</h1>
     </div>
     <RouterLink class="button" to="/proizvodi/novi">Dodaj proizvod</RouterLink>
@@ -73,7 +73,7 @@ async function obrisi() {
     <input
       v-model="pretraga"
       type="text"
-      placeholder="Pretraži po nazivu"
+      placeholder="Pretrazi po nazivu"
       aria-label="Pretraga proizvoda"
     />
     <select v-model="sortiranje" aria-label="Kolona za sortiranje">
@@ -81,8 +81,8 @@ async function obrisi() {
       <option value="cena">Cena</option>
     </select>
     <select v-model="smer" aria-label="Smer sortiranja">
-      <option value="asc">Rastuće</option>
-      <option value="desc">Opadajuće</option>
+      <option value="asc">Rastuce</option>
+      <option value="desc">Opadajuce</option>
     </select>
     <label class="prekidac">
       <input v-model="samoDostupni" type="checkbox" />
@@ -92,7 +92,7 @@ async function obrisi() {
 
   <p v-if="greska" class="upozorenje">{{ greska }}</p>
 
-  <p v-else-if="ucitava" class="muted">Učitavanje...</p>
+  <p v-else-if="ucitava" class="muted">Ucitavanje...</p>
 
   <div v-else-if="proizvodi.length" class="table-card">
     <table>
@@ -121,7 +121,7 @@ async function obrisi() {
           <td class="table-actions">
             <RouterLink :to="`/proizvodi/${proizvod.id}/izmeni`">Izmeni</RouterLink>
             <button type="button" class="veza opasno" @click="zaBrisanje = proizvod">
-              Obriši
+              Obrisi
             </button>
           </td>
         </tr>
@@ -136,7 +136,7 @@ async function obrisi() {
 
   <PotvrdaBrisanja
     v-if="zaBrisanje"
-    :tekst="`Obrisati proizvod „${zaBrisanje.naziv}“ iz šifarnika? Brisanje neće uspeti ako se proizvod nalazi na nekoj narudžbini.`"
+    :tekst="`Obrisati proizvod '${zaBrisanje.naziv}' iz sifarnika? Brisanje nece uspeti ako se proizvod nalazi na nekoj narudzbini.`"
     @potvrdi="obrisi"
     @otkazi="zaBrisanje = null"
   />

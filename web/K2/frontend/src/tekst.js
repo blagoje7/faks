@@ -1,5 +1,4 @@
-// Srpski koristi različit oblik imenice uz 1, uz 2-4 i uz 5 i više,
-// pri čemu brojevi 11-14 idu uz oblik za 5 i više.
+// oblik imenice uz broj: 1 stavka, 3 stavke, 5 stavki
 export function oblik(broj, jednina, paukal, mnozina) {
   const poslednje_dve = broj % 100;
   const poslednja = broj % 10;
@@ -26,10 +25,10 @@ export function datum(vrednost) {
 
 export function tekstBrisanjaNarudzbine(narudzbina) {
   if (!narudzbina.broj_stavki) {
-    return `Obrisati narudžbinu ${narudzbina.broj}? Narudžbina nema stavki.`;
+    return `Obrisati narudzbinu ${narudzbina.broj}? Narudzbina nema stavki.`;
   }
   return (
-    `Narudžbina ${narudzbina.broj} biće trajno obrisana zajedno sa svojim ` +
+    `Narudzbina ${narudzbina.broj} bice trajno obrisana zajedno sa svojim ` +
     `stavkama (${oblik(narudzbina.broj_stavki, "stavka", "stavke", "stavki")}). ` +
     `Nastaviti?`
   );

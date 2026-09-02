@@ -39,8 +39,7 @@ async function ucitaj() {
   }
 }
 
-// Filteri se šalju serveru; kratko odlaganje sprečava slanje zahteva
-// na svaki otkucani karakter.
+// odlaganje, da se ne salje zahtev na svaki karakter
 watch([pretraga, status, sortiranje, smer], () => {
   clearTimeout(tajmer);
   tajmer = setTimeout(ucitaj, 250);
@@ -66,7 +65,7 @@ function promeniSortiranje(kolona) {
 
 function oznakaSmera(kolona) {
   if (sortiranje.value !== kolona) return "";
-  return smer.value === "asc" ? "▲" : "▼";
+  return smer.value === "asc" ? "^" : "v";
 }
 
 function resetuj() {
@@ -94,17 +93,17 @@ async function obrisi() {
   <div class="page-title">
     <div>
       <p class="eyebrow">Master entitet</p>
-      <h1>Narudžbine</h1>
+      <h1>Narudzbine</h1>
     </div>
-    <RouterLink class="button" to="/narudzbine/nova">Nova narudžbina</RouterLink>
+    <RouterLink class="button" to="/narudzbine/nova">Nova narudzbina</RouterLink>
   </div>
 
   <div class="toolbar">
     <input
       v-model="pretraga"
       type="text"
-      placeholder="Pretraži po broju ili kupcu"
-      aria-label="Pretraga narudžbina"
+      placeholder="Pretrazi po broju ili kupcu"
+      aria-label="Pretraga narudzbina"
     />
     <select v-model="status" aria-label="Filter po statusu">
       <option value="">Svi statusi</option>
@@ -118,15 +117,15 @@ async function obrisi() {
       <option value="kupac">Kupac</option>
     </select>
     <select v-model="smer" aria-label="Smer sortiranja">
-      <option value="asc">Rastuće</option>
-      <option value="desc">Opadajuće</option>
+      <option value="asc">Rastuce</option>
+      <option value="desc">Opadajuce</option>
     </select>
     <button class="button secondary" type="button" @click="resetuj">Resetuj</button>
   </div>
 
   <p v-if="greska" class="upozorenje">{{ greska }}</p>
 
-  <p v-else-if="ucitava" class="muted">Učitavanje...</p>
+  <p v-else-if="ucitava" class="muted">Ucitavanje...</p>
 
   <div v-else-if="narudzbine.length" class="table-card">
     <table>
@@ -167,7 +166,7 @@ async function obrisi() {
               class="veza opasno"
               @click="zaBrisanje = narudzbina"
             >
-              Obriši
+              Obrisi
             </button>
           </td>
         </tr>
@@ -176,8 +175,8 @@ async function obrisi() {
   </div>
 
   <div v-else class="empty">
-    <h2>Nema narudžbina za prikaz.</h2>
-    <p>Promenite uslove pretrage ili unesite prvu narudžbinu.</p>
+    <h2>Nema narudzbina za prikaz.</h2>
+    <p>Promenite uslove pretrage ili unesite prvu narudzbinu.</p>
   </div>
 
   <PotvrdaBrisanja

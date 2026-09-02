@@ -27,13 +27,13 @@ def procitaj_podatke(podaci, narudzbina_id=None):
             Narudzbina.id != narudzbina_id
         )
         if zauzet.first() is not None:
-            greske["broj"] = "Narudžbina sa tim brojem već postoji."
+            greske["broj"] = "Narudzbina sa tim brojem vec postoji."
 
     vrednosti["kupac"], greska = validacija.tekst(podaci, "kupac", "Kupac", maksimum=100)
     if greska:
         greske["kupac"] = greska
 
-    vrednosti["email"], greska = validacija.eposta(podaci, "email", "Elektronska pošta")
+    vrednosti["email"], greska = validacija.eposta(podaci, "email", "Elektronska posta")
     if greska:
         greske["email"] = greska
 
@@ -59,7 +59,7 @@ def statusi():
 
 @narudzbina_bp.get("/sledeci-broj")
 def sledeci_broj():
-    """Predlog broja za novu narudžbinu; korisnik ga može promeniti."""
+    """Predlog broja za novu narudzbinu."""
     godina = date.today().year
     prefiks = f"NAR-{godina}-"
 
@@ -102,7 +102,7 @@ def lista_narudzbina():
 def jedna_narudzbina(narudzbina_id):
     narudzbina = db.session.get(Narudzbina, narudzbina_id)
     if narudzbina is None:
-        return jsonify({"poruka": "Tražena narudžbina ne postoji."}), 404
+        return jsonify({"poruka": "Trazena narudzbina ne postoji."}), 404
 
     return jsonify(narudzbina.u_recnik(sa_stavkama=True))
 
@@ -111,7 +111,7 @@ def jedna_narudzbina(narudzbina_id):
 def stavke_narudzbine(narudzbina_id):
     narudzbina = db.session.get(Narudzbina, narudzbina_id)
     if narudzbina is None:
-        return jsonify({"poruka": "Tražena narudžbina ne postoji."}), 404
+        return jsonify({"poruka": "Trazena narudzbina ne postoji."}), 404
 
     stavke = Stavka.query.filter_by(narudzbina_id=narudzbina_id).all()
     return jsonify([stavka.u_recnik() for stavka in stavke])
@@ -134,7 +134,7 @@ def dodaj_narudzbinu():
 def izmeni_narudzbinu(narudzbina_id):
     narudzbina = db.session.get(Narudzbina, narudzbina_id)
     if narudzbina is None:
-        return jsonify({"poruka": "Tražena narudžbina ne postoji."}), 404
+        return jsonify({"poruka": "Trazena narudzbina ne postoji."}), 404
 
     vrednosti, greske = procitaj_podatke(
         request.get_json(silent=True) or {}, narudzbina_id=narudzbina_id
@@ -153,15 +153,15 @@ def izmeni_narudzbinu(narudzbina_id):
 def obrisi_narudzbinu(narudzbina_id):
     narudzbina = db.session.get(Narudzbina, narudzbina_id)
     if narudzbina is None:
-        return jsonify({"poruka": "Tražena narudžbina ne postoji."}), 404
+        return jsonify({"poruka": "Trazena narudzbina ne postoji."}), 404
 
     obrisano_stavki = narudzbina.broj_stavki
     db.session.delete(narudzbina)
     db.session.commit()
 
     if obrisano_stavki:
-        poruka = f"Narudžbina je obrisana zajedno sa {tekst.stavki(obrisano_stavki)}."
+        poruka = f"Narudzbina je obrisana zajedno sa {tekst.stavki(obrisano_stavki)}."
     else:
-        poruka = "Narudžbina je obrisana."
+        poruka = "Narudzbina je obrisana."
 
     return jsonify({"poruka": poruka, "obrisano_stavki": obrisano_stavki})

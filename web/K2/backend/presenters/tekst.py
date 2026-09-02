@@ -1,5 +1,4 @@
-"""Srpski traži drugačiji oblik imenice uz 1, uz 2-4 i uz 5 i više,
-pri čemu brojevi 11-14 idu uz oblik za 5 i više."""
+"""Oblik imenice uz broj: 1 stavka, 3 stavke, 5 stavki."""
 
 
 def oblik(broj, jednina, paukal, mnozina):
@@ -16,5 +15,4 @@ def oblik(broj, jednina, paukal, mnozina):
 
 
 def stavki(broj):
-    """Za rečenicu oblika „zajedno sa ...“."""
     return oblik(broj, "stavkom", "stavke", "stavki")

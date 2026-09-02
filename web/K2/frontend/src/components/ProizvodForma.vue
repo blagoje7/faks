@@ -79,7 +79,7 @@ async function posalji() {
     </div>
   </div>
 
-  <p v-if="ucitava" class="muted">Učitavanje...</p>
+  <p v-if="ucitava" class="muted">Ucitavanje...</p>
 
   <form v-else class="form-card" @submit.prevent="posalji">
     <p v-if="opstaGreska" class="upozorenje">{{ opstaGreska }}</p>
@@ -113,8 +113,8 @@ async function posalji() {
     />
     <p v-if="greske.cena" class="greska-polja">{{ greske.cena }}</p>
     <p v-else class="pomoc">
-      Izmena cene ne menja iznose već unetih narudžbina — one pamte cenu iz
-      trenutka poručivanja.
+      Izmena cene ne menja iznose vec unetih narudzbina - one pamte cenu iz
+      trenutka porucivanja.
     </p>
 
     <label for="jedinica">Jedinica mere</label>
@@ -131,12 +131,12 @@ async function posalji() {
 
     <label class="prekidac samostalni">
       <input v-model="model.dostupan" type="checkbox" />
-      Dostupan za poručivanje
+      Dostupan za porucivanje
     </label>
 
     <div class="actions">
       <button class="button" type="submit" :disabled="salje">
-        {{ salje ? "Čuvanje..." : "Sačuvaj" }}
+        {{ salje ? "Cuvanje..." : "Sacuvaj" }}
       </button>
       <RouterLink class="button secondary" to="/proizvodi">Nazad</RouterLink>
     </div>

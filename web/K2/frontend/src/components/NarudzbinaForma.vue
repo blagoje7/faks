@@ -41,7 +41,7 @@ onMounted(async () => {
         status: narudzbina.status,
       };
     } else {
-      // Server predlaže sledeći slobodan broj; korisnik ga može promeniti.
+      // server predlaze slobodan broj
       const predlog = await narudzbinaApi.sledeciBroj();
       model.value.broj = predlog.broj;
     }
@@ -62,10 +62,10 @@ async function posalji() {
       ? await narudzbinaApi.izmeni(props.id, model.value)
       : await narudzbinaApi.dodaj(model.value);
 
-    dodajPoruku(izmena.value ? "Narudžbina je izmenjena." : "Narudžbina je uneta.");
+    dodajPoruku(izmena.value ? "Narudzbina je izmenjena." : "Narudzbina je uneta.");
     router.push(`/narudzbine/${narudzbina.id}`);
   } catch (problem) {
-    // Server vraća greške po poljima, pa se svaka ispisuje ispod svog polja.
+    // greske stizu po poljima
     greske.value = problem.greske;
     if (!Object.keys(problem.greske).length) {
       opstaGreska.value = problem.message;
@@ -79,17 +79,17 @@ async function posalji() {
 <template>
   <div class="page-title">
     <div>
-      <p class="eyebrow">Forma za narudžbinu</p>
-      <h1>{{ izmena ? "Izmena narudžbine" : "Nova narudžbina" }}</h1>
+      <p class="eyebrow">Forma za narudzbinu</p>
+      <h1>{{ izmena ? "Izmena narudzbine" : "Nova narudzbina" }}</h1>
     </div>
   </div>
 
-  <p v-if="ucitava" class="muted">Učitavanje...</p>
+  <p v-if="ucitava" class="muted">Ucitavanje...</p>
 
   <form v-else class="form-card" @submit.prevent="posalji">
     <p v-if="opstaGreska" class="upozorenje">{{ opstaGreska }}</p>
 
-    <label for="broj">Broj narudžbine</label>
+    <label for="broj">Broj narudzbine</label>
     <input id="broj" v-model="model.broj" type="text" :class="{ neispravno: greske.broj }" />
     <p v-if="greske.broj" class="greska-polja">{{ greske.broj }}</p>
 
@@ -102,7 +102,7 @@ async function posalji() {
     />
     <p v-if="greske.kupac" class="greska-polja">{{ greske.kupac }}</p>
 
-    <label for="email">Elektronska pošta</label>
+    <label for="email">Elektronska posta</label>
     <input
       id="email"
       v-model="model.email"
@@ -120,7 +120,7 @@ async function posalji() {
       :class="{ neispravno: greske.datum }"
     />
     <p v-if="greske.datum" class="greska-polja">{{ greske.datum }}</p>
-    <p v-else class="pomoc">Datum narudžbine ne može biti u budućnosti.</p>
+    <p v-else class="pomoc">Datum narudzbine ne moze biti u buducnosti.</p>
 
     <label for="status">Status</label>
     <select id="status" v-model="model.status" :class="{ neispravno: greske.status }">
@@ -132,7 +132,7 @@ async function posalji() {
 
     <div class="actions">
       <button class="button" type="submit" :disabled="salje">
-        {{ salje ? "Čuvanje..." : "Sačuvaj" }}
+        {{ salje ? "Cuvanje..." : "Sacuvaj" }}
       </button>
       <RouterLink class="button secondary" to="/narudzbine">Nazad</RouterLink>
     </div>

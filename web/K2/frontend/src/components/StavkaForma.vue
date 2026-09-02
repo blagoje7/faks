@@ -7,8 +7,8 @@ import { dodajPoruku } from "@/poruke";
 import { dinari } from "@/tekst";
 
 const props = defineProps({
-  id: { type: String, default: "" }, // izmena postojeće stavke
-  narudzbinaId: { type: String, default: "" }, // dodavanje iz detalja narudžbine
+  id: { type: String, default: "" }, // izmena postojece stavke
+  narudzbinaId: { type: String, default: "" }, // dodavanje iz detalja narudzbine
 });
 
 const router = useRouter();
@@ -32,8 +32,7 @@ const izabraniProizvod = computed(() =>
   proizvodi.value.find((proizvod) => proizvod.id === model.value.proizvod_id),
 );
 
-// Cena se prepisuje iz šifarnika samo kada se proizvod postavlja ili menja.
-// Ako se na izmeni proizvod ne dira, važi cena zapamćena pri unosu.
+// cena iz sifarnika, samo pri postavljanju ili promeni proizvoda
 const zadrzavaZapamcenuCenu = computed(
   () => izmena.value && pocetna.value && pocetna.value.proizvod_id === model.value.proizvod_id,
 );
@@ -47,7 +46,6 @@ const iznos = computed(() => cenaZaPrikaz.value * (model.value.kolicina || 0));
 
 onMounted(async () => {
   try {
-    // Oba select polja se pune sa servera: narudžbine i proizvodi.
     [narudzbine.value, proizvodi.value] = await Promise.all([
       narudzbinaApi.lista({ sortiranje: "broj", smer: "asc" }),
       proizvodApi.lista({ sortiranje: "naziv" }),
@@ -78,14 +76,14 @@ onMounted(async () => {
 });
 
 function nazivNarudzbine(narudzbina) {
-  return `${narudzbina.broj} — ${narudzbina.kupac}`;
+  return `${narudzbina.broj} - ${narudzbina.kupac}`;
 }
 
 function nazivProizvoda(proizvod) {
   const cena = `${dinari(proizvod.cena)} RSD / ${proizvod.jedinica_mere}`;
   return proizvod.dostupan
-    ? `${proizvod.naziv} — ${cena}`
-    : `${proizvod.naziv} — ${cena} (nedostupno)`;
+    ? `${proizvod.naziv} - ${cena}`
+    : `${proizvod.naziv} - ${cena} (nedostupno)`;
 }
 
 async function posalji() {
@@ -119,12 +117,12 @@ async function posalji() {
     </div>
   </div>
 
-  <p v-if="ucitava" class="muted">Učitavanje...</p>
+  <p v-if="ucitava" class="muted">Ucitavanje...</p>
 
   <form v-else class="form-card" @submit.prevent="posalji">
     <p v-if="opstaGreska" class="upozorenje">{{ opstaGreska }}</p>
 
-    <label for="narudzbina">Narudžbina</label>
+    <label for="narudzbina">Narudzbina</label>
     <select
       id="narudzbina"
       v-model.number="model.narudzbina_id"
@@ -136,7 +134,7 @@ async function posalji() {
     </select>
     <p v-if="greske.narudzbina_id" class="greska-polja">{{ greske.narudzbina_id }}</p>
     <p v-else-if="izmena" class="pomoc">
-      Promenom narudžbine stavka se premešta na izabranu narudžbinu.
+      Promenom narudzbine stavka se premesta na izabranu narudzbinu.
     </p>
 
     <label for="proizvod">Proizvod</label>
@@ -151,7 +149,7 @@ async function posalji() {
     </select>
     <p v-if="greske.proizvod_id" class="greska-polja">{{ greske.proizvod_id }}</p>
 
-    <label for="kolicina">Količina</label>
+    <label for="kolicina">Kolicina</label>
     <input
       id="kolicina"
       v-model.number="model.kolicina"
@@ -172,20 +170,20 @@ async function posalji() {
       </div>
       <p class="pomoc">
         <template v-if="zadrzavaZapamcenuCenu">
-          Zadržava se cena zapamćena pri unosu stavke. Tekuća cena iz šifarnika
+          Zadrzava se cena zapamcena pri unosu stavke. Tekuca cena iz sifarnika
           je {{ dinari(izabraniProizvod ? izabraniProizvod.cena : 0) }} RSD i
-          primeniće se tek ako promenite proizvod.
+          primenice se tek ako promenite proizvod.
         </template>
         <template v-else>
-          Cena se preuzima iz šifarnika u trenutku čuvanja i od tada se pamti
-          uz stavku, pa je kasnija izmena cenovnika neće promeniti.
+          Cena se preuzima iz sifarnika u trenutku cuvanja i od tada se pamti
+          uz stavku, pa je kasnija izmena cenovnika nece promeniti.
         </template>
       </p>
     </div>
 
     <div class="actions">
       <button class="button" type="submit" :disabled="salje">
-        {{ salje ? "Čuvanje..." : "Sačuvaj" }}
+        {{ salje ? "Cuvanje..." : "Sacuvaj" }}
       </button>
       <RouterLink class="button secondary" :to="povratnaPutanja">Nazad</RouterLink>
     </div>

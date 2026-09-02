@@ -10,14 +10,12 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
-  // Produkcijski build ide direktno u Flask static folder, pa se na
-  // prezentaciji pokreće samo jedan server.
+  // build ide u Flask static, pa je na prezentaciji jedan server
   build: {
     outDir: "../backend/static",
     emptyOutDir: true,
   },
-  // U razvoju Vite servira klijent na 5173 i prosleđuje /api Flask-u na 5000,
-  // pa klijent uvek poziva iste relativne putanje.
+  // u razvoju: /api sa 5173 ide na Flask 5000
   server: {
     port: 5173,
     proxy: {

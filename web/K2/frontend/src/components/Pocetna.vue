@@ -34,16 +34,22 @@ const uPripremi = computed(
 <template>
   <section class="hero">
     <p class="eyebrow">Kolokvijum II &middot; Flask REST API + Vue.js</p>
-    <h1>Evidencija narudžbina i njihovih stavki</h1>
+    <h1>Evidencija narudzbina i njihovih stavki</h1>
     <p class="muted">
-      Narudžbina je nadređeni entitet, stavka je podređena i briše se zajedno
-      sa njom. Proizvod je šifarnik koji stoji sa strane — stavke ga referišu,
-      ali on nije njihov roditelj. Sve operacije idu preko REST API-ja.
+      Narudzbina je nadredjeni entitet, stavka je podredjena i brise se zajedno
+      sa njom. 
+      <br>
+      <br>
+      Proizvod je sifarnik koji stoji sa strane - stavke ga referisu,
+      ali on nije njihov roditelj. 
+      <br>
+      <br>
+      Sve operacije idu preko REST API-ja.
     </p>
 
     <div class="actions">
-      <RouterLink class="button" to="/narudzbine">Prikaži narudžbine</RouterLink>
-      <RouterLink class="button secondary" to="/proizvodi">Šifarnik proizvoda</RouterLink>
+      <RouterLink class="button" to="/narudzbine">Prikazi narudzbine</RouterLink>
+      <RouterLink class="button secondary" to="/proizvodi">Sifarnik proizvoda</RouterLink>
     </div>
   </section>
 
@@ -51,7 +57,7 @@ const uPripremi = computed(
 
   <section v-else-if="!ucitava" class="stats-row">
     <div class="stat">
-      <span>Narudžbina</span>
+      <span>Narudzbina</span>
       <strong>{{ narudzbine.length }}</strong>
     </div>
     <div class="stat">
@@ -59,7 +65,7 @@ const uPripremi = computed(
       <strong>{{ uPripremi }}</strong>
     </div>
     <div class="stat">
-      <span>Proizvoda u šifarniku</span>
+      <span>Proizvoda u sifarniku</span>
       <strong>{{ proizvodi.length }}</strong>
     </div>
     <div class="stat">

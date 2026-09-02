@@ -1,10 +1,13 @@
 from flask import Blueprint, jsonify, request
 
 from database import db
-from models import JEDINICE_MERE, Proizvod, Stavka
+from models import JEDINICE_MERE, Narudzbina, Proizvod, Stavka
 from presenters import validacija
 
 proizvod_bp = Blueprint("proizvod", __name__, url_prefix="/api/proizvodi")
+
+# statusi u kojima narudzbina jos moze da se menja, pa drzi proizvod
+STATUSI_U_TOKU = ("u_pripremi", "potvrdjena")
 
 KOLONE_ZA_SORTIRANJE = {
     "naziv": Proizvod.naziv,
@@ -70,7 +73,7 @@ def lista_proizvoda():
 def jedan_proizvod(proizvod_id):
     proizvod = db.session.get(Proizvod, proizvod_id)
     if proizvod is None:
-        return jsonify({"poruka": "Traženi proizvod ne postoji."}), 404
+        return jsonify({"poruka": "Trazeni proizvod ne postoji."}), 404
 
     return jsonify(proizvod.u_recnik())
 
@@ -92,7 +95,7 @@ def dodaj_proizvod():
 def izmeni_proizvod(proizvod_id):
     proizvod = db.session.get(Proizvod, proizvod_id)
     if proizvod is None:
-        return jsonify({"poruka": "Traženi proizvod ne postoji."}), 404
+        return jsonify({"poruka": "Trazeni proizvod ne postoji."}), 404
 
     vrednosti, greske = procitaj_podatke(request.get_json(silent=True) or {})
     if greske:
@@ -109,20 +112,25 @@ def izmeni_proizvod(proizvod_id):
 def obrisi_proizvod(proizvod_id):
     proizvod = db.session.get(Proizvod, proizvod_id)
     if proizvod is None:
-        return jsonify({"poruka": "Traženi proizvod ne postoji."}), 404
+        return jsonify({"poruka": "Trazeni proizvod ne postoji."}), 404
 
-    # Proizvod nije podređen narudžbini, pa se ne briše kaskadno. Ako se
-    # pojavljuje na nekoj narudžbini, brisanje se odbija i nudi se
-    # označavanje kao nedostupnog.
-    upotrebljen = Stavka.query.filter_by(proizvod_id=proizvod_id).count()
+    # proizvod drze samo narudzbine koje jos nisu isporucene
+    upotrebljen = (
+        Stavka.query.join(Narudzbina)
+        .filter(
+            Stavka.proizvod_id == proizvod_id,
+            Narudzbina.status.in_(STATUSI_U_TOKU),
+        )
+        .count()
+    )
     if upotrebljen:
         return (
             jsonify(
                 {
                     "poruka": (
-                        "Proizvod se već koristi u narudžbinama "
-                        f"(broj stavki: {upotrebljen}) i zato ne može biti obrisan. "
-                        "Označite ga kao nedostupan."
+                        "Proizvod se vec koristi u narudzbinama "
+                        f"(broj stavki: {upotrebljen}) i zato ne moze biti obrisan. "
+                        "Oznacite ga kao nedostupan."
                     ),
                     "upotrebljen_na_stavki": upotrebljen,
                 }
@@ -130,7 +138,17 @@ def obrisi_proizvod(proizvod_id):
             409,
         )
 
+    # stavke isporucenih narudzbina ostaju sa zapamcenim nazivom i cenom;
+    # prekida se samo veza ka sifarniku, pa RESTRICT nema sta da zadrzi
+    arhivirano = Stavka.query.filter_by(proizvod_id=proizvod_id).update(
+        {"proizvod_id": None}, synchronize_session=False
+    )
+
     db.session.delete(proizvod)
     db.session.commit()
 
-    return jsonify({"poruka": "Proizvod je obrisan."})
+    poruka = "Proizvod je obrisan."
+    if arhivirano:
+        poruka += f" Stavke isporucenih narudzbina su zadrzane ({arhivirano})."
+
+    return jsonify({"poruka": poruka, "arhivirano_stavki": arhivirano})

@@ -68,8 +68,9 @@ K2/
 | Pravilo | Gde |
 |---|---|
 | Brisanje narudžbine briše i njene stavke | `ON DELETE CASCADE` + `cascade="all, delete-orphan"` |
-| Proizvod koji stoji na stavci ne može se obrisati | `ON DELETE RESTRICT` + provera u `proizvod_presenter` → `409` |
-| Cena se pamti u trenutku poručivanja | `stavka_presenter.procitaj_podatke` |
+| Proizvod iz narudžbine koja je **u toku** ne može se obrisati | provera statusa u `proizvod_presenter` → `409`; `ON DELETE RESTRICT` je poslednja odbrana |
+| Proizvod samo sa **isporučenih** narudžbina se briše, a stavke ostaju | `proizvod_presenter` prekine vezu (`proizvod_id = NULL`) pa obriše proizvod |
+| Cena, naziv i jedinica mere pamte se u trenutku poručivanja | `stavka_presenter.procitaj_podatke` |
 | Isti proizvod najviše jednom po narudžbini | `UNIQUE (narudzbina_id, proizvod_id)` + provera u presenteru |
 | Nedostupan proizvod ne može se poručiti | `stavka_presenter` |
 | Datum narudžbine ne sme biti u budućnosti | `validacija.datum(bez_buducnosti=True)` |
@@ -85,7 +86,7 @@ K2/
 | Metoda | Putanja | Opis |
 |---|---|---|
 | `GET` | `/api/proizvodi` | Lista; `pretraga`, `sortiranje`, `smer`, `samo_dostupni` |
-| `POST` `PUT` `DELETE` | `/api/proizvodi[/<id>]` | CRUD; `DELETE` vraća `409` ako se koristi |
+| `POST` `PUT` `DELETE` | `/api/proizvodi[/<id>]` | CRUD; `DELETE` vraća `409` ako proizvod stoji na narudžbini u toku |
 | `GET` | `/api/narudzbine` | Lista; `pretraga`, `status`, `sortiranje`, `smer` |
 | `GET` | `/api/narudzbine/<id>` | Narudžbina sa ugnježdenim stavkama |
 | `GET` | `/api/narudzbine/<id>/stavke` | Samo stavke — master-detail vidljiv u adresi |
@@ -153,7 +154,8 @@ Redosled je namerno takav da svaka stavka zadatka bude pokrivena, a poslednje dv
 | 11 | **Obriši narudžbinu** | Dijalog za potvrdu **generisan na klijentu**, sa brojem stavki |
 | 12 | **Proizvodi** → izmenite cenu nekog proizvoda koji je već poručen | — |
 | 13 | Vratite se na staru narudžbinu | **Iznos se NIJE promenio** — zapamćena cena |
-| 14 | **Proizvodi** → pokušajte da obrišete taj proizvod | **409 sa objašnjenjem** — RESTRICT, za razliku od CASCADE na narudžbini |
+| 14 | **Proizvodi** → obrišite proizvod sa narudžbine koja je u pripremi | **409 sa objašnjenjem** — šifarnik nije vlasnik, za razliku od CASCADE na narudžbini |
+| 15 | Obrišite proizvod koji stoji samo na **isporučenoj** narudžbini | Briše se; otvorite tu narudžbinu — stavka je tu, iznos isti, uz oznaku „nije više u šifarniku” |
 
 Koraci 13 i 14 su ono što odvaja rad koji je „napravio CRUD” od rada koji je **razumeo model**. Nemojte ih preskočiti.
 
@@ -177,7 +179,7 @@ Ne zna — poziva relativnu putanju `/api/...`. Na prezentaciji Flask servira i 
 Pretraživač tu adresu stvarno traži od servera. Flask ima pravilo koje sve nepoznate putanje vraća na `index.html`, pa se aplikacija podigne i Vue Router odluči šta da prikaže. Putanje koje počinju sa `api/` su izuzete, da pogrešna API adresa vrati `404` a ne HTML.
 
 **Da li ste testirali?**
-`provera_api.py` — 52 provere nad celim API-jem: CRUD, kaskada, RESTRICT, zapamćena cena, premeštanje stavki, validacija, statusni kodovi, SPA rutiranje.
+`provera_api.py` — 62 provere nad celim API-jem: CRUD, kaskada, RESTRICT, brisanje proizvoda po statusu narudžbine, zapamćena cena, premeštanje stavki, validacija, statusni kodovi, SPA rutiranje.
 
 ---
 
@@ -196,4 +198,4 @@ Poslednji red je i razlog zašto vredi **probati ceo plan demonstracije dan rani
 
 ---
 
-Arhitektura koja se brani na K1 je u folderu [`../K1`](../K1). Uputstvo za instalaciju je u [`README.md`](README.md).
+Arhitektura koja se brani na K1 je u folderu [`K1/`](../../K1). Uputstvo za instalaciju je u [`README.md`](README.md).

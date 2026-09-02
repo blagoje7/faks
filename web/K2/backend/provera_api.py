@@ -1,9 +1,4 @@
-"""Samoprovera REST API-ja nad privremenom SQLite bazom.
-
-Ne dira MySQL podatke i ne zahteva pokrenut server. Pokretanje iz backend/:
-
-    venv\\Scripts\\python provera_api.py
-"""
+"""Samoprovera REST API-ja nad privremenom SQLite bazom; ne dira MySQL."""
 
 import os
 import sys
@@ -42,7 +37,10 @@ with app.app_context():
         datum=DANAS, status="u_pripremi",
     ))
     db.session.commit()
-    db.session.add(Stavka(narudzbina_id=1, proizvod_id=1, kolicina=2, cena_po_komadu=8500))
+    db.session.add(Stavka(
+        narudzbina_id=1, proizvod_id=1, kolicina=2, cena_po_komadu=8500,
+        proizvod_naziv="Tastatura", jedinica_mere="kom",
+    ))
     db.session.commit()
 
 klijent = app.test_client()
@@ -179,7 +177,7 @@ o = klijent.get("/api/narudzbine/1")
 proveri("stara narudzbina vise nema tu stavku", o.json["broj_stavki"] == 1, o.json)
 
 o = klijent.delete(f"/api/proizvodi/{kabl}")
-proveri("RESTRICT: brisanje upotrebljenog proizvoda vraca 409", o.status_code == 409, o.status_code)
+proveri("proizvod u narudzbini koja je u toku vraca 409", o.status_code == 409, o.status_code)
 proveri("odgovor javlja na koliko stavki stoji", o.json["upotrebljen_na_stavki"] == 1, o.json)
 
 o = klijent.delete("/api/proizvodi/3")
@@ -193,6 +191,41 @@ with app.app_context():
     proizvoda = Proizvod.query.count()
 proveri("stavke obrisane narudzbine su kaskadno obrisane", ostalo == 0, ostalo)
 proveri("brisanje narudzbine ne dira sifarnik", proizvoda == 3, proizvoda)
+
+print("--- Brisanje proizvoda po statusu narudzbine -----------------")
+
+o = klijent.post("/api/proizvodi", json={"naziv": "Podloga", "opis": "Opis", "cena": 900, "jedinica_mere": "kom", "dostupan": True})
+podloga = o.json["id"]
+
+o = klijent.post("/api/narudzbine", json={"broj": "NAR-2026-0020", "kupac": "Jelena", "email": "j@primer.rs", "datum": JUCE, "status": "isporucena"})
+isporucena = o.json["id"]
+o = klijent.post("/api/stavke", json={"narudzbina_id": isporucena, "proizvod_id": podloga, "kolicina": 2})
+proveri("stavka na isporucenoj narudzbini je kreirana", o.status_code == 201, o.status_code)
+iznos_pre = klijent.get(f"/api/narudzbine/{isporucena}").json["ukupan_iznos"]
+
+o = klijent.post("/api/narudzbine", json={"broj": "NAR-2026-0021", "kupac": "Jelena", "email": "j@primer.rs", "datum": JUCE, "status": "potvrdjena"})
+u_toku = o.json["id"]
+klijent.post("/api/stavke", json={"narudzbina_id": u_toku, "proizvod_id": podloga, "kolicina": 1})
+
+o = klijent.delete(f"/api/proizvodi/{podloga}")
+proveri("proizvod i u toku i isporucen vraca 409", o.status_code == 409, o.status_code)
+proveri("broje se samo stavke narudzbina u toku", o.json["upotrebljen_na_stavki"] == 1, o.json)
+
+klijent.delete(f"/api/narudzbine/{u_toku}")
+
+o = klijent.delete(f"/api/proizvodi/{podloga}")
+proveri("proizvod samo na isporucenoj narudzbini se brise", o.status_code == 200, o.status_code)
+proveri("odgovor javlja koliko je stavki zadrzano", o.json["arhivirano_stavki"] == 1, o.json)
+
+o = klijent.get(f"/api/narudzbine/{isporucena}")
+proveri("stavka isporucene narudzbine je zadrzana", len(o.json["stavke"]) == 1, o.json)
+proveri("zapamcen naziv je prezivio brisanje", o.json["stavke"][0]["proizvod_naziv"] == "Podloga", o.json["stavke"][0])
+proveri("stavka je oznacena kao arhivirana", o.json["stavke"][0]["arhivirana"] is True, o.json["stavke"][0])
+proveri("iznos isporucene narudzbine je nepromenjen", o.json["ukupan_iznos"] == iznos_pre, o.json["ukupan_iznos"])
+
+with app.app_context():
+    veza = db.session.get(Stavka, o.json["stavke"][0]["id"]).proizvod_id
+proveri("veza ka sifarniku je prekinuta", veza is None, veza)
 
 print("--- Infrastruktura ------------------------------------------")
 

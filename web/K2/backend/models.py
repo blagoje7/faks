@@ -4,15 +4,15 @@ from database import db
 
 STATUSI = {
     "u_pripremi": "U pripremi",
-    "potvrdjena": "Potvrđena",
-    "isporucena": "Isporučena",
+    "potvrdjena": "Potvrdjena",
+    "isporucena": "Isporucena",
 }
 
 JEDINICE_MERE = ["kom", "kg", "l", "m", "pak"]
 
 
 class Proizvod(db.Model):
-    """Šifarnik. Postoji nezavisno od narudžbina i nije deo master-detail veze."""
+    """Sifarnik, van master-detail veze."""
 
     __tablename__ = "proizvod"
 
@@ -35,7 +35,7 @@ class Proizvod(db.Model):
 
 
 class Narudzbina(db.Model):
-    """Master entitet. Brisanje narudžbine kaskadno briše njene stavke."""
+    """Master entitet."""
 
     __tablename__ = "narudzbina"
 
@@ -79,11 +79,7 @@ class Narudzbina(db.Model):
 
 
 class Stavka(db.Model):
-    """Detail entitet. Ne postoji bez narudžbine kojoj pripada.
-
-    Polje cena_po_komadu je namerno kopija cene proizvoda u trenutku unosa —
-    kasnija promena cenovnika ne sme da izmeni iznos ranije narudžbine.
-    """
+    """Detail entitet, ne postoji bez narudzbine."""
 
     __tablename__ = "stavka"
     __table_args__ = (
@@ -99,10 +95,12 @@ class Stavka(db.Model):
     proizvod_id = db.Column(
         db.Integer,
         db.ForeignKey("proizvod.id", ondelete="RESTRICT"),
-        nullable=False,
+        nullable=True,  # NULL kad je proizvod arhiviran
     )
     kolicina = db.Column(db.Integer, nullable=False)
-    cena_po_komadu = db.Column(db.Numeric(10, 2), nullable=False)
+    cena_po_komadu = db.Column(db.Numeric(10, 2), nullable=False)  # zapamcena cena
+    proizvod_naziv = db.Column(db.String(100), nullable=False)     # zapamcen naziv
+    jedinica_mere = db.Column(db.String(20), nullable=False)
 
     proizvod = db.relationship("Proizvod")
 
@@ -115,9 +113,10 @@ class Stavka(db.Model):
             "id": self.id,
             "narudzbina_id": self.narudzbina_id,
             "proizvod_id": self.proizvod_id,
-            "proizvod_naziv": self.proizvod.naziv if self.proizvod else None,
-            "jedinica_mere": self.proizvod.jedinica_mere if self.proizvod else None,
+            "proizvod_naziv": self.proizvod_naziv,
+            "jedinica_mere": self.jedinica_mere,
             "kolicina": self.kolicina,
             "cena_po_komadu": float(self.cena_po_komadu),
             "iznos": float(self.iznos),
+            "arhivirana": self.proizvod_id is None,
         }

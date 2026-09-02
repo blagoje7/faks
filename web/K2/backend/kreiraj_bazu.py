@@ -1,8 +1,4 @@
-"""Kreira šemu k2_narudzbine i puni je početnim podacima iz baza.sql.
-
-Pokrenuti jednom pre prvog startovanja aplikacije:
-    python kreiraj_bazu.py
-"""
+"""Kreira semu k2_narudzbine i puni je podacima iz baza.sql."""
 
 import getpass
 import os
@@ -40,7 +36,7 @@ def main():
         )
     except pymysql.err.OperationalError as greska:
         print(f"Povezivanje na MySQL nije uspelo: {greska}")
-        print("Proverite da li MySQL servis radi i da li su podaci u .env fajlu tačni.")
+        print("Proverite da li MySQL servis radi i da li su podaci u .env fajlu tacni.")
         return 1
 
     with veza:
@@ -58,7 +54,7 @@ def main():
 
     print(
         f"Baza k2_narudzbine je kreirana: {proizvoda} proizvoda, "
-        f"{narudzbina} narudžbine, {stavki} stavki."
+        f"{narudzbina} narudzbine, {stavki} stavki."
     )
     return 0
 
