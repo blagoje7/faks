@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Veb programiranje — pitanja iz teorije</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --panel-2:#f0f2f5; --ink:#15181d; --ink-2:#4a5261;
+  --line:#dde1e8; --accent:#2f5fd0; --accent-soft:#e6edfb;
+  --ok:#1a7f4b; --ok-soft:#e3f4ea; --bad:#b3261e; --bad-soft:#fbe9e7;
+  --warn:#8a6100; --warn-soft:#fdf3dd; --chip:#eef1f6;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1216; --panel:#171b21; --panel-2:#1e242c; --ink:#e6e9ee; --ink-2:#9aa4b2;
+    --line:#2a313b; --accent:#7ea6ff; --accent-soft:#1b2740;
+    --ok:#5fd39a; --ok-soft:#13291f; --bad:#ff8a80; --bad-soft:#2c1614;
+    --warn:#e0b054; --warn-soft:#2e2411; --chip:#232a33;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+.wrap{max-width:920px;margin:0 auto;padding:24px 18px 96px}
+header.top{margin-bottom:22px}
+h1{font-size:1.6rem;line-height:1.25;margin:0 0 6px}
+.sub{color:var(--ink-2);font-size:.93rem;margin:0}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:18px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.controls .grow{flex:1 1 auto}
+button{
+  font:inherit;font-size:.9rem;padding:7px 13px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--line);background:var(--panel-2);color:var(--ink);
+}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{filter:brightness(1.08)}
+select{font:inherit;font-size:.9rem;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink)}
+label.inline{font-size:.9rem;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.filters button{font-size:.82rem;padding:5px 10px;border-radius:999px}
+.filters button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+
+.bar{height:6px;background:var(--panel-2);border-radius:999px;overflow:hidden;margin-top:12px}
+.bar > i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.stats{display:flex;gap:16px;flex-wrap:wrap;font-size:.86rem;color:var(--ink-2);margin-top:10px}
+.stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+.setline{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.setline label{font-size:.86rem;color:var(--ink-2)}
+.hint{font-size:.82rem;color:var(--ink-2);margin-top:10px}
+
+.q{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;margin-bottom:14px}
+.q.correct{border-color:var(--ok)}
+.q.wrong{border-color:var(--bad)}
+.q.partial{border-color:var(--warn)}
+.qhead{display:flex;gap:10px;align-items:baseline;margin-bottom:10px}
+.qnum{font:600 .78rem/1 var(--mono);color:var(--ink-2);background:var(--chip);padding:5px 8px;border-radius:6px;white-space:nowrap}
+.qtext{font-weight:600;margin:0}
+.qtext code{font-family:var(--mono);font-size:.88em;background:var(--panel-2);padding:1px 5px;border-radius:4px}
+
+.opts{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line);border-radius:9px;cursor:pointer;background:var(--panel)}
+.opt:hover{background:var(--panel-2)}
+.opt input{margin:4px 0 0;accent-color:var(--accent);flex:0 0 auto;width:16px;height:16px}
+.opt span{flex:1 1 auto}
+.opt code{font-family:var(--mono);font-size:.88em;background:var(--panel-2);padding:1px 5px;border-radius:4px}
+.q.done .opt{cursor:default}
+.q.done .opt input{pointer-events:none}
+.opt.is-ok{background:var(--ok-soft);border-color:var(--ok)}
+.opt.is-bad{background:var(--bad-soft);border-color:var(--bad)}
+.opt .mark{font:600 .8rem/1.5 var(--mono);flex:0 0 auto}
+.opt.is-ok .mark{color:var(--ok)}
+.opt.is-bad .mark{color:var(--bad)}
+.opt.is-miss{background:var(--warn-soft);border-color:var(--warn)}
+.opt.is-miss .mark{color:var(--warn)}
+
+.qfoot{display:flex;gap:10px;align-items:center;margin-top:11px;flex-wrap:wrap}
+.verdict{font-size:.86rem;font-weight:600}
+.verdict.ok{color:var(--ok)}
+.verdict.bad{color:var(--bad)}
+.verdict.partial{color:var(--warn)}
+.expl{display:none;margin-top:10px;padding:11px 13px;background:var(--panel-2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;font-size:.9rem;color:var(--ink-2)}
+.q.done .expl{display:block}
+.expl code{font-family:var(--mono);font-size:.88em}
+.src{display:block;margin-top:7px;font-size:.79rem;opacity:.8}
+
+.empty{text-align:center;color:var(--ink-2);padding:40px 0}
+footer.end{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);color:var(--ink-2);font-size:.84rem}
+.sticky{position:sticky;bottom:0;background:linear-gradient(to top,var(--bg) 62%,transparent);padding:14px 0 10px;margin-top:8px}
+@media (max-width:520px){
+  .wrap{padding:16px 12px 80px}
+  h1{font-size:1.32rem}
+  .controls{gap:6px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>Veb programiranje — pitanja iz teorije</h1>
+  <p class="sub">Pitanja su izvedena iz predavanja (8 prezentacija, 480 slajdova). Svako nosi <b>najviše 1 bod</b>. Ako izabereš samo deo tačnih odgovora, dobijaš srazmeran deo boda (2 od 3 = 0,67). Čim izabereš i jedan netačan, pitanje nosi 0 bodova. Broj tačnih se ne otkriva unapred, a redosled ponuđenih odgovora se meša.</p>
+</header>
+
+<div class="panel">
+  <div class="setline">
+    <label for="set">Skup pitanja:</label>
+    <select id="set">
+      <option value="all">Sva pitanja</option>
+      <optgroup label="Kolokvijum I — predavanja 1–4">
+        <option value="k1-0">K1 · primer 1 (30 pitanja)</option>
+        <option value="k1-1">K1 · primer 2 (30 pitanja)</option>
+        <option value="k1-2">K1 · primer 3 (30 pitanja)</option>
+        <option value="k1-3">K1 · primer 4 (30 pitanja)</option>
+        <option value="k1-4">K1 · primer 5 (30 pitanja)</option>
+      </optgroup>
+      <optgroup label="Kolokvijum II — predavanja 5–8">
+        <option value="k2-0">K2 · primer 1 (30 pitanja)</option>
+        <option value="k2-1">K2 · primer 2 (30 pitanja)</option>
+        <option value="k2-2">K2 · primer 3 (30 pitanja)</option>
+        <option value="k2-3">K2 · primer 4 (30 pitanja)</option>
+        <option value="k2-4">K2 · primer 5 (30 pitanja)</option>
+      </optgroup>
+    </select>
+    <span class="grow"></span>
+    <label class="inline"><input type="checkbox" id="shuffle"> izmešaj pitanja</label>
+    <button id="reveal">Prikaži odgovore</button>
+    <button id="reset">Kreni ispočetka</button>
+  </div>
+  <div class="filters" id="filters"></div>
+  <div class="bar"><i id="bar"></i></div>
+  <div class="stats">
+    <span>Odgovoreno: <b id="s-done">0</b> / <b id="s-total">0</b></span>
+    <span>Bodovi: <b id="s-pts">0</b> / <b id="s-max">0</b></span>
+    <span>Uspešnost: <b id="s-pct">—</b></span>
+  </div>
+  <div class="stats">
+    <span>Potpuno tačno: <b id="s-ok">0</b></span>
+    <span>Delimično: <b id="s-part">0</b></span>
+    <span>Netačno: <b id="s-bad">0</b></span>
+  </div>
+  <p class="hint" id="hint"></p>
+</div>
+
+<main id="list"></main>
+
+<footer class="end">
+  Izvor: <code>Predavanja (1).zip</code> — 1 Uvod u VP · 2 Dinamičko generisanje sadržaja · 3 Veb server ·
+  4 Veb server i generisanje prikaza · 5 REST API · 6 JavaScript · 7 JavaScript napredne teme i DOM ·
+  8 JavaScript događaji i funkcije. Oznaka <code>P3 · sl. 34</code> pod objašnjenjem znači predavanje 3, slajd 34.
+</footer>
+
+</div>
+
+<script>
+const QUESTIONS = [
+/* ===================== PREDAVANJE 1 — UVOD U VP ===================== */
+{p:1,s:"4",q:"Koje komponente čine troslojnu arhitekturu Veb aplikacije?",
+ o:["Klijent","Aplikativni server (poslovna logika)","Perzistencija podataka","Sloj keširanja između klijenta i servera","Templejt procesor kao zaseban sloj"],
+ a:[0,1,2],
+ e:"Predavanje navodi tačno tri komponente: klijent, aplikativni server sa poslovnom logikom i sloj perzistencije podataka."},
+
+{p:1,s:"11",q:"Koje osobine HTTP protokola su navedene na predavanju?",
+ o:["Connectionless","Simple","Extensible-customized","Stateless","Persistent — konekcija se održava između zahteva"],
+ a:[0,1,2,3],
+ e:"Navedene su četiri: connectionless, simple, extensible-customized i stateless. Garantovanje isporuke je posao TCP-a, a ne HTTP-a."},
+
+{p:1,s:"14",q:"HTTP je STATELESS protokol. Šta to znači i kako se sesija ipak održava?",
+ o:["Protokol sam po sebi ne čuva stanje, tj. sesiju","Neki serveri sesiju održavaju pomoću sakrivenih varijabli","Neki serveri sesiju održavaju pomoću HTTP cookies","Sesija je deo same HTTP specifikacije, pa je serveri ne moraju posebno realizovati"],
+ a:[0,1,2],
+ e:"HTTP ne čuva stanje. Serveri sesiju održavaju sakrivenim varijablama ili HTTP cookie objektima."},
+
+{p:1,s:"12, 21",q:"Šta radi HTTP metoda HEAD?",
+ o:["Preuzima zaglavlje poruke bez preuzimanja tela poruke","Preuzima informacije o URL resursu","Preuzima telo poruke, ali bez zaglavlja","Proverava koje su metode dozvoljene nad resursom"],
+ a:[0,1],
+ e:"HEAD preuzima zaglavlje bez tela poruke — na slajdu sa metodama kao pridevima opisana je kao „Dobavi informacije URL resursa”."},
+
+{p:1,s:"12",q:"Koja je razlika između POST i PUT metode prema predavanju?",
+ o:["POST šalje podatke na osnovu kojih se formira novi URI resurs","PUT je slično kao POST, s tim što se postojeći URI resurs menja","PUT briše resurs, POST ga kreira","POST i PUT su potpuno zamenjivi — razlika je samo u nazivu"],
+ a:[0,1],
+ e:"POST kreira novi URI resurs; PUT menja postojeći URI resurs."},
+
+{p:1,s:"12",q:"Koja HTTP metoda vrši delimičnu izmenu URI resursa?",
+ o:["PATCH","PUT","POST","OPTIONS"],
+ a:[0],
+ e:"PATCH je metoda za delimičnu izmenu URI resursa. PUT menja ceo postojeći resurs."},
+
+{p:1,s:"13",q:"Povežite klase HTTP statusnih kodova sa značenjem — koje su tvrdnje tačne?",
+ o:["1XX su informacioni","2XX označavaju uspešnu realizaciju","3XX označavaju redirekciju","4XX je klijentska greška","5XX je klijentska greška"],
+ a:[0,1,2,3],
+ e:"1XX informacioni, 2XX uspešna realizacija, 3XX redirekcija, 4XX klijentska greška (npr. 404), 5XX serverska greška."},
+
+{p:1,s:"23",q:"Koja je razlika između statusnih kodova 401 i 403?",
+ o:["401 Unauthorized se koristi kada korisnik nije prijavljen","403 Forbidden se koristi kada ni prijava ne bi pomogla","403 znači da resurs ne postoji","401 se koristi kada je resurs privremeno nedostupan"],
+ a:[0,1],
+ e:"401 Unauthorized — korisnik nije prijavljen. 403 Forbidden — pristup je zabranjen i prijava ne bi pomogla. Nepostojanje resursa je 404."},
+
+{p:1,s:"23",q:"Šta znače navedeni statusni kodovi?",
+ o:["307 Temporary Redirect — pretraživač ponavlja zahtev koristeći Location zaglavlje","503 Service Unavailable — nešto je otkazalo na serveru","500 Internal Server Error — greška na serveru","400 Bad Request — koristi se kada Veb aplikacija šalje neispravan zahtev","503 Service Unavailable — klijent je poslao neispravan zahtev"],
+ a:[0,1,2,3],
+ e:"Sva četiri opisa su preuzeta sa slajda o uobičajenim statusnim kodovima."},
+
+{p:1,s:"15",q:"Od čega se sastoji HTTP REQUEST poruka i kojim redom?",
+ o:["request linija (npr. GET /images/logo.jpg)","header, tj. zaglavlje zahteva","prazna linija","opciono telo poruke (message body)","statusna linija HTTP/1.1 200 OK"],
+ a:[0,1,2,3],
+ e:"Request poruka: request linija, zaglavlje, prazna linija, opciono telo. Statusna linija postoji samo u RESPONSE poruci."},
+
+{p:1,s:"15",q:"Šta važi za završetke linija u HTTP poruci?",
+ o:["Request linija i header polja moraju se završiti sa CRLF (carriage return line feed)","Prazna linija mora da sadrži samo CRLF, bez praznih mesta","CRLF je marker kraja linije (EOL)","Prazna linija sme da sadrži i razmake pored CRLF karaktera"],
+ a:[0,1,2],
+ e:"CRLF je marker kraja linije; prazna linija koja razdvaja zaglavlje od tela mora sadržati isključivo CRLF."},
+
+{p:1,s:"16",q:"Od čega se sastoji HTTP RESPONSE poruka?",
+ o:["statusna linija (HTTP/1.1 200 OK)","header polje odgovora (npr. Content-Type: text/html)","prazna linija","opciono telo poruke","request linija (npr. GET /index.html)"],
+ a:[0,1,2,3],
+ e:"Response: statusna linija, zaglavlja, prazna linija, opciono telo poruke."},
+
+{p:1,s:"19, 36, 37",q:"Kojim redom se odvijaju koraci kada korisnik unese URL u pretraživač?",
+ o:["OS šalje DNS upit da bi našao IP adresu sajta","OS uspostavlja TCP konekciju sa računarom na dobijenoj IP adresi","Pretraživač šalje HTTP GET zahtev putem konekcije","Pretraživač čita odgovor Veb servera iz konekcije","Pretraživač sam razrešava IP adresu, bez učešća operativnog sistema"],
+ a:[0,1,2,3],
+ e:"Redosled: DNS upit → TCP konekcija → slanje HTTP GET zahteva → čitanje odgovora. Klijent nikada ne pristupa bazi servera direktno."},
+
+{p:1,s:"36, 37",q:"Šta rade DNS i TCP?",
+ o:["DNS (Domain Name System) translira nazive domena u IP adresu računara","IP adresa je jedinstveni numerički identifikator računara na Internetu","TCP (Transmission Control Protocol) definiše format podataka za slanje informacija putem Internet mreže","TCP translira nazive domena u IP adresu, a DNS uspostavlja konekciju"],
+ a:[0,1,2],
+ e:"DNS prevodi ime domena u IP adresu; IP adresa jedinstveno identifikuje računar; TCP definiše format podataka za prenos (koristi se za HTTP, FTP)."},
+
+{p:1,s:"41",q:"Šta je soket (socket) u kontekstu Veb servera?",
+ o:["Pristupna tačka Veb servera pomoću koje prima i šalje podatke","Objekat koji omogućava prijem pristiglih poruka zahteva klijenata od OS računara servera","NodeJS/Flask omogućavaju kreiranje programskih objekata soketa","Programski objekat koji kreira operativni sistem klijenta radi slanja DNS upita"],
+ a:[0,1,2],
+ e:"Soket je pristupna tačka koju kreira izvršavanje koda Veb servera; preko nje OS prosleđuje pristigle zahteve."},
+
+{p:1,s:"40",q:"Termin „server” prema predavanju ima više značenja. Koja?",
+ o:["Računar koji izvršava platformu i kod Veb servera","Programski kod, tj. softver Veb servera","Operativni sistem računara na kome se izvršava Veb server","Soket preko kog se primaju poruke zahteva"],
+ a:[0,1],
+ e:"Server može značiti fizički računar ili softver koji se na njemu izvršava — uvek je potrebno naglasiti na koje značenje se misli."},
+
+{p:1,s:"25",q:"Kako izgleda petlja Veb servera?",
+ o:["prihvata TCP konekciju pretraživača","čita HTTP zahtev iz TCP konekcije","obrađuje HTTP zahtev","upisuje HTTP odgovor u TCP konekciju","zatvara TCP konekciju, osim kada je Connection: keep-alive","otvara TCP konekciju ka klijentu i čeka da klijent zatraži resurs"],
+ a:[0,1,2,3,4],
+ e:"Svih pet koraka čine petlju Veb servera. Konekcija se ne zatvara ako je postavljeno Connection: keep-alive."},
+
+{p:1,s:"28, 29",q:"Šta je CGI (Common Gateway Interface)?",
+ o:["Programski interfejs koji omogućava Veb serveru izvršavanje eksternog programa radi opsluživanja zahteva klijenata","Razvijen je 1990-tih kao jedini način za kreiranje interaktivnih i dinamičkih Veb stranica","Rezultat izvršavanja CGI programa je obično HTML stranica","Program predstavlja kapiju (gateway) između Veb servera i skladišta podataka","CGI program se izvršava u istom toku kao i sam Veb server, bez odvojenog procesa"],
+ a:[0,1,2,3],
+ e:"CGI je standardan način komunikacije eksternog (gateway) programa sa HTTP serverom; nastao 1990-ih, rezultat je najčešće HTML stranica."},
+
+{p:1,s:"30",q:"Šta radi kontroler u modernim okvirima za razvoj Veb aplikacija?",
+ o:["Analizira (parsira) URL i HTTP zahtev radi izdvajanja parametara","Koristi izdvojene parametre da dobavi neophodne podatke (model) iz baze","Izvršava HTML templejt (view) u koji ubacuje podatke","Šalje generisani sadržaj klijentu kao HTTP odgovor","Sam pristupa DOM stablu u pretraživaču i tamo menja prikaz"],
+ a:[0,1,2,3],
+ e:"Kontroler parsira zahtev, dobavlja model, izvršava templejt i vraća generisani sadržaj klijentu."},
+
+{p:1,s:"6",q:"Koje programske paradigme su navedene na predavanju?",
+ o:["Proceduralne","Deklarativne","Hibridne (templejt)","Objektno-orijentisane","Funkcionalne","Imperativne"],
+ a:[0,1,2,3,4],
+ e:"Navedeno je pet paradigmi: proceduralne, deklarativne, hibridne (templejt), objektno-orijentisane i funkcionalne."},
+
+{p:1,s:"7, 8, 9",q:"Koji pristup ilustruje svaki od primera sa predavanja?",
+ o:["Pisanje HTML tagova <code>&lt;div&gt;</code>, <code>&lt;textarea&gt;</code>, <code>&lt;button&gt;</code> je deklarativni pristup","Kreiranje elemenata pomoću <code>document.createElement()</code> i <code>appendChild()</code> je proceduralni pristup","Vue sa <code>{{message}}</code> u HTML-u i <code>new Vue({el, data})</code> je hibridni (templejt) pristup","Vue primer je čisto deklarativni pristup, jer je pisan u HTML-u"],
+ a:[0,1,2],
+ e:"HTML tagovi = deklarativno; DOM API pozivi = proceduralno; Vue templejt = hibridni pristup."},
+
+{p:1,s:"54",q:"Za šta je odgovorna svaka komponenta MVC obrasca?",
+ o:["Model je odgovoran za podatke aplikacije (baza, JS/Python objekti sa atributima)","View je odgovoran za izgled aplikacije, tj. look (HTML i CSS)","Controller je odgovoran za ponašanje aplikacije, tj. feel","Model je odgovoran za obradu događaja korisničkog interfejsa"],
+ a:[0,1,2],
+ e:"Model = podaci, View = izgled (look), Controller = ponašanje (feel), uključujući DOM osluškivače događaja i komunikaciju sa serverom."},
+
+{p:1,s:"61",q:"Koje su prednosti MVC obrasca prema predavanju?",
+ o:["Organizacija koda — lakše za održavanje i pretragu","Elementi se mogu razvijati i testirati nezavisno","Isti podaci (model) se mogu prezentovati na različite načine","Izvor podataka modela se može promeniti bez uticaja na pogled","Smanjuje se ukupan broj datoteka u projektu"],
+ a:[0,1,2,3],
+ e:"Prednosti su organizacija koda, unapređenje procesa razvoja i fleksibilnost. Brzina izvršavanja se ne pominje kao prednost."},
+
+{p:1,s:"63",q:"Kako predavanje razlikuje Pull i Push arhitekturu MVC-a?",
+ o:["Pull: kada se model promeni, on obaveštava poglede","Push: kada pogled treba da se promeni, traži podatke od modela","Pull garantuje prezentaciju ažurnih podataka","Push izbegava suvišna ažuriranja pogleda, tj. komunikacije između delova","Pull arhitektura izbegava suvišna ažuriranja pogleda"],
+ a:[0,1,2,3],
+ e:"Prema slajdu: Pull = model obaveštava poglede i garantuje ažurnost; Push = pogled traži podatke od modela i time izbegava suvišna ažuriranja."},
+
+{p:1,s:"52",q:"Šta karakteriše savremene tehnologije Veb aplikacija prema predavanju?",
+ o:["Okviri zasnovani na JS jeziku čije se aplikacije izvršavaju u pretraživaču","Poslovna logika premeštena u pretraživač i odvojena od klijentske logike (NodeJS)","Korišćenje ne-relacionih baza podataka (MongoDB)","Logika klijentske aplikacije organizovana po MVC obrascu","Obavezno korišćenje relacionih baza podataka zbog konzistentnosti"],
+ a:[0,1,2,3],
+ e:"Razlog je raspodela odgovornosti klijentske strane radi bržeg i kvalitetnijeg razvoja i održavanja, što je očiglednije sa porastom kompleksnosti sistema."},
+
+{p:1,s:"55",q:"Koje su prednosti templejta u odnosu na DOM tehnike?",
+ o:["HTML sadržaj je jednostavniji za vizuelizaciju i promenu","Dinamički delovi se vide u samom templejtu","Lakše je identifikovati dinamičke delove jer su jasno razdvojeni od ostatka klijentske logike","Dinamički delovi se u potpunosti izdvajaju iz HTML dokumenta"],
+ a:[0,1,2],
+ e:"Templejt čini HTML lakšim za vizuelizaciju, a dinamičke delove vidljivim i jasno odvojenim od klijentske logike."},
+
+{p:1,s:"51",q:"Šta važi za početne okvire razvoja Veb aplikacija (PHP, ASP, JSP)?",
+ o:["Templejti su mešavina HTML tagova i koda","Tagovi imaju deklarativno značenje: šta prikazati","Kod ima imperativno značenje: kako kreirati prikaz","Postojale su odvojene biblioteke za URL adresiranje, generisanje HTML-a, upravljanje sesijama i interfejs ka bazi","Tagovi imaju imperativno, a kod deklarativno značenje"],
+ a:[0,1,2,3],
+ e:"Kod ranih okvira templejt meša deklarativne tagove (šta) i imperativni kod (kako), uz odvojene biblioteke za specifične obrade."},
+
+/* ===================== PREDAVANJE 2 — DINAMIČKO GENERISANJE SADRŽAJA ===================== */
+{p:2,s:"3",q:"Šta je templejt procesor?",
+ o:["Program koji kombinuje predefinisani šablon stranice sa modelom podataka kako bi generisao rezultujući dokument","Deo serverske strane aplikacije","Jezik za kreiranje templejta je obično JavaScript ili Python","Procesor je deo klijentske strane aplikacije"],
+ a:[0,1,2],
+ e:"Templejt procesor spaja šablon i model podataka u rezultujući dokument; deo je serverske strane, a jezik templejta je obično JS ili Python (npr. Jinja)."},
+
+{p:2,s:"5",q:"Koja tri elementa sadrži svaki templejt sistem i kako se mapiraju na MVC?",
+ o:["Pridruženi model podataka — Model","Jedan ili veći broj šablona — View","Procesor ili obrađivač šablona — Controller","Procesor šablona — View, a šabloni — Controller"],
+ a:[0,1,2],
+ e:"Model podataka = Model, šabloni = View, procesor šablona = Controller. Krajnji rezultat je dokument (HTML, tekst i sl.)."},
+
+{p:2,s:"4",q:"Koji elementi su tipično prisutni u templejt sistemima?",
+ o:["varijable i funkcije","umetanje teksta","umetanje datoteka (grafika, audio, video)","upravljačke naredbe (if, for, switch)","definicije stilova prikaza (CSS pravila)"],
+ a:[0,1,2,3],
+ e:"Templejt sistemi kombinuju deklarativne tehnike (HTML) sa proceduralnim (JS, Python), sa akcentom na elemente za obradu teksta."},
+
+{p:2,s:"6",q:"Šta sve može biti model podataka templejt sistema?",
+ o:["Relaciona baza podataka","Nerelaciona baza podataka","JSON, XML i CSV datoteke","Audio/video datoteke i datoteke sa tekstom","Isključivo strukturirani formati — relacione baze, JSON i XML"],
+ a:[0,1,2,3],
+ e:"Predavanje navodi relacione i nerelacione baze, JSON, XML, CSV, audio/video i tekstualne datoteke."},
+
+{p:2,s:"9",q:"Koje funkcije ima templejt procesor (template engine)?",
+ o:["Povezivanje sa modelom podataka","Obrada koda, tj. naredbi navedenih u šablonu","Generisanje krajnjeg dokumenta kao popunjenog ili adaptiranog šablona","Rutiranje URL adresa ka odgovarajućoj funkciji pogleda"],
+ a:[0,1,2],
+ e:"Tri funkcije: povezivanje sa modelom, obrada naredbi u šablonu i generisanje krajnjeg dokumenta."},
+
+{p:2,s:"10",q:"Koji su slučajevi korišćenja templejt sistema?",
+ o:["Generisanje dokumenata (HTML i drugi tekstualni formati)","Generisanje izvornog koda na osnovu apstraktnih modela (UML model klasa, model relacione baze)","Generisanje softverskih funkcionalnosti (Veb stranice sa funkcionalnostima)","Optimizacija izvršavanja SQL upita nad modelom podataka"],
+ a:[0,1,2],
+ e:"Tri slučaja: generisanje dokumenata, generisanje izvornog koda i generisanje softverskih funkcionalnosti."},
+
+{p:2,s:"11",q:"Koje su prednosti templejta prema predavanju?",
+ o:["Razdvajanje i organizacija izvornog koda u odvojene celine","Unapređuje faze životnog ciklusa razvoja softvera","Poboljšava produktivnost kroz ponovnu upotrebljivost razvijenih elemenata","Unapređuje saradnju članova tima sa različitim znanjima i veštinama","Smanjuje broj HTTP zahteva ka serveru"],
+ a:[0,1,2,3],
+ e:"Prednosti: razdvajanje koda, unapređenje životnog ciklusa razvoja, produktivnost kroz ponovnu upotrebu i bolja saradnja umetnika, dizajnera i programera."},
+
+{p:2,s:"18",q:"Koje vrste templejt sistema navodi predavanje?",
+ o:["Serverski — obrada se dešava na serverskoj strani","Klijentski — obrada se dešava u Veb pretraživaču","Posrednički — obrada se dešava između Veb servera i klijenta","Eksterni — stranice se generišu odvojeno (offline) i šalju serveru za prikaz","Distribuirani — obrada se dešava na većem broju Veb servera","Hibridni — obrada se deli između modela i pogleda"],
+ a:[0,1,2,3,4],
+ e:"Predavanje navodi svih pet: serverski, klijentski, posrednički, eksterni i distribuirani templejt sistem."},
+
+{p:2,s:"12",q:"Šta sadrži Veb templejt sistem?",
+ o:["Obrađivač šablona","Resurse sadržaja (ulazni tokovi, XML, JSON, relacione i nerelacione baze)","Resurse templejta poput šablona HTML stranica koji kombinuju tagove sa naredbama u proceduralnim jezicima","Isključivo statičke HTML stranice, bez naredbi u proceduralnim jezicima"],
+ a:[0,1,2],
+ e:"Obrađivači kombinuju i procesiraju resurse sadržaja i šablona i tako kreiraju veb dokumente kao korisnički interfejs aplikacije."},
+
+{p:2,s:"19, 20",q:"Šta razlikuje serverski od klijentskog templejt sistema?",
+ o:["Kod serverskog, dinamičke stranice se kreiraju iz šablona na serveru (npr. Jinja)","Kod klijentskog, obrada templejta se dešava u pretraživaču (JavaScript)","Kod klijentskog, obrada se dešava između Veb servera i pretraživača","Serverski sistem generiše stranice offline i tek ih onda šalje serveru"],
+ a:[0,1],
+ e:"Serverski sistem (Jinja) obrađuje šablone na serveru, a klijentski (JavaScript) u pretraživaču."},
+
+/* ===================== PREDAVANJE 3 — VEB SERVER (FLASK) ===================== */
+{p:3,s:"4",q:"Šta važi za osnovnu Flask aplikaciju <code>app = Flask(__name__)</code>?",
+ o:["Radi se o WSGI (Web Server Gateway Interface) aplikaciji kao interfejsu između Veb servera i Veb aplikacije","<code>route()</code> funkcija je dekorator koji govori koji URL je povezan sa funkcijom u nastavku","<code>app.run()</code> izvršava aplikaciju na lokalnom razvojnom serveru","Podrazumevana adresa razvojnog servera je <code>http://127.0.0.1:5000/</code>","<code>Flask(__name__)</code> automatski pokreće server, pa <code>app.run()</code> nije potreban"],
+ a:[0,1,2,3],
+ e:"Flask je WSGI aplikacija; route() je dekorator koji vezuje URL za funkciju pogleda; app.run() pokreće razvojni server na portu 5000."},
+
+{p:3,s:"5",q:"Kako se u Flask-u može povezati URL sa funkcijom?",
+ o:["Dekoratorom <code>@app.route('/hello')</code> iznad funkcije","Pozivom <code>app.add_url_rule('/', 'hello', hello_world)</code>","Navođenjem imena funkcije u datoteci <code>templates/routes.html</code>","Pozivom <code>app.url_map()</code> pri pokretanju aplikacije"],
+ a:[0,1],
+ e:"Rutiranje je tehnika navigacije kroz aplikaciju; može se zadati dekoratorom route() ili pozivom add_url_rule()."},
+
+{p:3,s:"6, 7",q:"Šta važi za varijable rute u Flask-u?",
+ o:["URL se može kreirati dinamički dodavanjem promenjivih delova rule parametru","Promenjivi deo se označava kao <code>&lt;ime-varijable&gt;</code>","<code>&lt;int:postID&gt;</code> konvertuje vrednost u ceo broj","<code>&lt;float:revNo&gt;</code> konvertuje vrednost u broj sa decimalnim mestima","Bez navedenog konvertora, vrednost se prosleđuje kao ceo broj"],
+ a:[0,1,2,3],
+ e:"Varijabilni deo URL-a se navodi u uglastim zagradama, uz opcioni konvertor tipa (int, float), i prosleđuje se funkciji pogleda kao parametar."},
+
+{p:3,s:"8",q:"Šta radi funkcija <code>url_for()</code>?",
+ o:["Kreira URL dinamički","Kao prvi argument prihvata ime funkcije","Prihvata jednu ili više ključnih reči koje označavaju promenjive delove URL-a","Kao prvi argument prihvata apsolutnu URL adresu kao string"],
+ a:[0,1,2],
+ e:"url_for() prima ime route funkcije (ne URL string) i opcione ključne reči za promenjive delove URL-a."},
+
+{p:3,s:"10, 21",q:"Kako Flask čita podatke iz zahteva?",
+ o:["<code>request.form['nm']</code> čita vrednost polja forme poslate POST metodom","<code>request.args.get('nm')</code> čita parametar iz query stringa (deo URL-a posle znaka pitanja)","<code>request.method</code> daje metod slanja zahteva (GET, POST)","<code>request.cookies</code> je rečnik sa imenima i vrednostima cookie objekata","<code>request.form</code> se koristi za čitanje URL parametara"],
+ a:[0,1,2,3],
+ e:"Request objekat ima Form (podaci forme), Args (parsirani query string), Cookies (rečnik cookie objekata) i Method (metod zahteva)."},
+
+{p:3,s:"10",q:"Šta mora da se navede da bi ruta prihvatila POST zahtev?",
+ o:["<code>@app.route('/login', methods = ['POST', 'GET'])</code>","Ako se <code>methods</code> ne navede, podrazumevana vrednost je GET","Ništa — Flask podrazumevano prihvata sve metode","POST se navodi kao <code>@app.route('/login', 'POST')</code>, bez ključne reči"],
+ a:[0,1],
+ e:"Route dekorator mora navesti POST u argumentu methods; GET je podrazumevana vrednost."},
+
+{p:3,s:"13",q:"Šta važi za Jinja2 templejte u Flask-u?",
+ o:["Templejt sadrži HTML sintaksu sa placeholder elementima za varijable i izraze","Templejti se čuvaju u direktorijumu <code>templates</code> unutar direktorijuma aplikacije","<code>render_template('hello.html', name = user)</code> prosleđuje vrednost varijable templejtu","Templejti se čuvaju u direktorijumu <code>static</code>"],
+ a:[0,1,2],
+ e:"Jinja templejti se nalaze u templates/ direktorijumu; render_template ih pronalazi i popunjava vrednostima prosleđenim kao ključne reči."},
+
+{p:3,s:"17",q:"Koja je Jinja sintaksa za šta?",
+ o:["<code>{% ... %}</code> za izraze (naredbe)","<code>{{ ... }}</code> za vrednosti varijabli","<code>{# ... #}</code> za komentare templejta","<code>{{ ... }}</code> za izraze, a <code>{% ... %}</code> za vrednosti varijabli"],
+ a:[0,1,2],
+ e:"Jinja koristi {% %} za naredbe/izraze, {{ }} za vrednosti varijabli i {# #} za komentare."},
+
+{p:3,s:"27",q:"Šta važi za Flask cookie objekte?",
+ o:["Cookie se nalazi na klijentskom računaru kao tekstualni dokument","Čuva podatke vezane za korisnikovo korišćenje Veb aplikacije radi unapređenja doživljaja korisnika i analitike","<code>make_response()</code> vraća Response objekat iz povratne vrednosti view() funkcije","Vrednost se čuva pomoću <code>set_cookie()</code> funkcije Response objekta","Vrednost se čita pomoću <code>request.cookies.get()</code>","Cookie se postavlja nad <code>request</code> objektom, pozivom <code>request.set_cookie()</code>"],
+ a:[0,1,2,3,4],
+ e:"Cookie se nalazi na klijentu; Flask ga postavlja preko Response objekta (make_response + set_cookie), a čita preko request.cookies.get()."},
+
+{p:3,s:"34",q:"Šta važi za Flask sesije?",
+ o:["Sesija odgovara intervalu vremena između prijave i odjave klijenta","Svaka sesija ima jedinstven identifikator (Session ID)","Podaci sesije su kriptografski zaštićeni od strane Veb servera","Flask aplikacija mora imati tajni ključ (SECRET_KEY) radi enkripcije","Objekat sesije je rečnik sa parovima ključ-vrednost","Podaci sesije se čuvaju nekriptovano, pa <code>SECRET_KEY</code> nije obavezan"],
+ a:[0,1,2,3,4],
+ e:"Sesija traje od prijave do odjave, ima jedinstveni Session ID, kriptografski je zaštićena preko SECRET_KEY i ponaša se kao rečnik."},
+
+{p:3,s:"35",q:"Kako se radi sa varijablama sesije u Flask-u?",
+ o:["Dodela: <code>session['username'] = 'admin'</code>","Uklanjanje: <code>session.pop('username', None)</code>","Uklanjanje: <code>session.delete('username')</code>","Dodela: <code>session.add('username', 'admin')</code>"],
+ a:[0,1],
+ e:"Varijabla sesije se postavlja indeksiranjem rečnika, a uklanja metodom pop()."},
+
+{p:3,s:"43",q:"Šta važi za <code>flask.redirect(location, statuscode, response)</code>?",
+ o:["<code>location</code> je URL na koji se upućuje odgovor","<code>statuscode</code> je HTTP statusni kod, podrazumevano 302","<code>response</code> je parametar za kreiranje response objekta","Podrazumevani statusni kod je 200"],
+ a:[0,1,2],
+ e:"Podrazumevani statusni kod redirekcije je 302 (HTTP_302_FOUND)."},
+
+{p:3,s:"45",q:"Koji statusni kodovi se navode uz <code>flask.abort(code)</code>?",
+ o:["400 Bad Request","401 Unauthenticated","403 Forbidden","404 Not Found","406 Not Acceptable, 415 Unsupported Media Type, 429 Many Requests","301 Moved Permanently"],
+ a:[0,1,2,3,4],
+ e:"Predavanje navodi 400, 401, 403, 404, 406, 415 i 429 kao kodove za abort()."},
+
+{p:3,s:"47, 48",q:"Šta važi za Message Flashing u Flask-u?",
+ o:["<code>flash(message, category)</code> prosleđuje poruku sledećem zahtevu, najčešće templejtu","Kategorija može biti 'error', 'info' ili 'warning' i ne mora se navesti","<code>get_flashed_messages()</code> prikuplja i uklanja poruke iz objekta sesije","Oba parametra funkcije <code>get_flashed_messages</code> su obavezna"],
+ a:[0,1,2],
+ e:"flash() šalje poruku sledećem zahtevu; get_flashed_messages() je preuzima i uklanja iz sesije, a oba njena parametra su opciona."},
+
+{p:3,s:"56, 59",q:"Šta omogućava Flask-WTF?",
+ o:["Fleksibilan način za definiciju, prikaz i validaciju forme","Definisanje forme i polja forme u Python kodu i prikaz forme u HTML templejtu","Sadrži Form klasu za programsku definiciju forme","Automatski dodaje skriveno polje <code>csrf_token</code> radi prevencije Cross Site Request Forgery napada","Instalira se sa <code>pip install flask-WTF</code>","Uklanja potrebu za <code>SECRET_KEY</code>, jer sam generiše CSRF token"],
+ a:[0,1,2,3,4],
+ e:"Flask-WTF definiše formu u Pythonu, prikazuje je u templejtu, validira unos i štiti od CSRF napada skrivenim csrf_token poljem."},
+
+{p:3,s:"57",q:"Kako se WTF polja mapiraju na HTML elemente?",
+ o:["<code>BooleanField</code> → <code>&lt;input type='checkbox'&gt;</code>","<code>RadioField</code> → <code>&lt;input type='radio'&gt;</code>","<code>SelectField</code> → <code>&lt;select&gt;</code>","<code>PasswordField</code> → <code>&lt;input type='password'&gt;</code>","<code>IntegerField</code> → <code>&lt;select&gt;</code>"],
+ a:[0,1,2,3],
+ e:"IntegerField je polje za unos celog broja, a ne <select>. Ostala mapiranja su tačna."},
+
+{p:3,s:"58",q:"Koje su prednosti Flask-WTF forme u odnosu na klasičnu HTML formu?",
+ o:["Kod klasične forme polja se kreiraju dva puta — u HTML dokumentu i u programu servera","Validacija unetih podataka se ne može izvršiti u HTML jeziku","Kod klasične forme se serverski program mora ručno baviti čitanjem polja iz pristiglog zahteva","Kod klasične forme podaci se šalju isključivo GET metodom"],
+ a:[0,1,2],
+ e:"Glavne mane klasične forme: duplo definisanje polja i nemogućnost validacije u samom HTML-u."},
+
+{p:3,s:"61",q:"Šta proveravaju navedene validator klase?",
+ o:["<code>DataRequired</code> — da li postoji sadržaj u polju za unos","<code>Email</code> — da li je sadržaj u formatu adrese elektronske pošte","<code>Length</code> — dužinu stringa polja za zadati opseg","<code>NumberRange</code> — brojčanu vrednost polja za zadati opseg","<code>URL</code> — da li je sadržaj u formatu IP adrese"],
+ a:[0,1,2,3],
+ e:"URL proverava format URL adrese; format IP adrese proverava validator IPAddress."},
+
+{p:3,s:"68",q:"Šta je potrebno za upload datoteke u Flask-u?",
+ o:["HTML forma mora imati atribut <code>enctype = 'multipart/form-data'</code>","URL obrađivač dobavlja fajl iz <code>request.files[]</code> objekta","Preporuka je koristiti <code>secure_filename()</code> funkciju za čuvanje imena fajla","<code>app.config['UPLOAD_FOLDER']</code> definiše putanju direktorijuma za čuvanje","<code>app.config['MAX_CONTENT_PATH']</code> definiše maksimalnu veličinu datoteke u bajtovima","Datoteka se odmah upisuje na krajnju lokaciju, bez privremene"],
+ a:[0,1,2,3,4],
+ e:"Svih pet stavki navedeno je na slajdu o file upload-u. Svaki upload-ovan fajl se najpre čuva na privremenoj lokaciji na serveru."},
+
+/* ===================== PREDAVANJE 4 — VEB SERVER I GENERISANJE PRIKAZA ===================== */
+{p:4,s:"2",q:"Šta pokazuje primer sa tri dekoratora iznad iste funkcije <code>hello_world</code>?",
+ o:["Jedna funkcija pogleda se može pozivati za različite rute","Rute <code>/</code>, <code>/hello</code> i <code>/hello/&lt;user&gt;</code> vode do iste funkcije","Svaka ruta mora imati svoju posebnu funkciju","Poziva se samo poslednji navedeni dekorator"],
+ a:[0,1],
+ e:"Više route dekoratora može stajati iznad jedne funkcije pogleda — svi vode ka istoj funkciji."},
+
+{p:4,s:"7, 28",q:"Kako je organizovan direktorijum Flask aplikacije?",
+ o:["Templejti se nalaze u poddirektorijumu <code>templates/</code>","Statički resursi (CSS, slike) se nalaze u poddirektorijumu <code>static/</code>","<code>render_template</code> pronalazi datoteke u <code>templates</code> direktorijumu","<code>render_template</code> pretražuje i <code>static/</code> ako datoteku ne nađe u <code>templates/</code>"],
+ a:[0,1,2],
+ e:"Standardna struktura: my_app.py u korenu, templates/ za Jinja šablone, static/ za CSS i ostale statičke resurse."},
+
+{p:4,s:"34",q:"Kako funkcioniše nasleđivanje templejta u Jinja?",
+ o:["Roditeljski templejt sadrži zajedničke elemente i definiše blokove kao promenjive delove","<code>{% block identifier %} {% endblock %}</code> u roditelju označava mesto za sadržaj deteta","<code>{% extends filename %}</code> u detetu identifikuje roditeljski templejt","<code>{% extends %}</code> se navodi u roditeljskom templejtu, a <code>{% block %}</code> u detetu"],
+ a:[0,1,2],
+ e:"Roditelj definiše blokove, dete ih redefiniše, a naredba extends povezuje dete sa roditeljem."},
+
+{p:4,s:"37",q:"Šta radi <code>{{ super() }}</code> unutar bloka u templejtu detetu?",
+ o:["Prikazuje sadržaj bloka templejta roditelja","Omogućava da dete proširi, a ne potpuno zameni sadržaj roditeljskog bloka","Poziva konstruktor roditeljske klase","Prosleđuje sadržaj bloka deteta nazad roditeljskom templejtu"],
+ a:[0,1],
+ e:"super() u Jinja bloku ubacuje sadržaj istoimenog bloka iz roditeljskog templejta."},
+
+{p:4,s:"15, 30",q:"Šta važi za filtere u Jinja templejtima?",
+ o:["Primenjuju se na varijable pomoću pipe operatora <code>|</code>","<code>{{ product['name'] | upper }}</code> prikazuje naziv velikim slovima","<code>{{ no_var | default('My Website') }}</code> daje podrazumevanu vrednost kada varijabla nije definisana","Filteri se prosleđuju kao argument funkcije <code>render_template</code>"],
+ a:[0,1,2],
+ e:"Filteri se lančaju pipe operatorom i primenjuju specifična pravila na vrednosti varijabli templejta."},
+
+{p:4,s:"18",q:"Šta radi kontekst procesor (<code>@app.context_processor</code>)?",
+ o:["Omogućava računanje ili obradu vrednosti u templejtu","Dodaje, tj. prosleđuje funkciju u templejt","Kontekst je Python dictionary objekat kojem se mogu dodavati i uklanjati vrednosti","Svaka funkcija označena dekoratorom vraća taj objekat, čijim vrednostima se pristupa u templejtu","Izvršava se jednom pri pokretanju aplikacije, a ne pri svakom prikazu templejta"],
+ a:[0,1,2,3],
+ e:"Kontekst procesor vraća rečnik čije vrednosti (uključujući funkcije) postaju dostupne unutar templejta."},
+
+{p:4,s:"23, 5",q:"Kako se pokreće Flask aplikacija sa komandne linije?",
+ o:["<code>export FLASK_APP=app.py</code> pa <code>flask run</code>","<code>flask --app=my_app run</code>","<code>python app.py run --flask</code>","<code>flask start my_app</code>"],
+ a:[0,1],
+ e:"Aplikacija se pokreće eksportom FLASK_APP promenjive okruženja i naredbom flask run, ili direktno preko flask --app=ime run."},
+
+{p:4,s:"26",q:"Šta važi za dinamičke URL adrese u Flask-u?",
+ o:["Dinamički URL je URL sa parametrima","Promenjiva URL sekcija se navodi kao <code>&lt;konvertor:ime_varijable&gt;</code>","Sekcija se prosleđuje kao parametar funkcije pogleda","Vrednost promenjive sekcije se čita iz <code>request.args</code>, a ne kao parametar funkcije"],
+ a:[0,1,2],
+ e:"Npr. @app.route('/page/&lt;int:pg_num&gt;') odgovara na /page/1, /page/20 itd., a pg_num postaje parametar funkcije."},
+
+{p:4,s:"40",q:"Čemu služi <code>SECRET_KEY</code> u Flask aplikaciji sa FlaskForm klasom?",
+ o:["Omogućava zaštitu od Cross-site request forgery (CSRF) napada","Postavlja se kao <code>app.config['SECRET_KEY'] = 'secret_string'</code>","Koristi se i za kriptografsku zaštitu podataka sesije","Šifruje lozinke korisnika pre upisa u bazu"],
+ a:[0,1,2],
+ e:"SECRET_KEY služi za CSRF zaštitu formi i za kriptografsku zaštitu sesije."},
+
+{p:4,s:"43",q:"Šta važi za validaciju forme?",
+ o:["Validacija je provera ispravnosti podataka pre slanja serverskoj strani na obradu","Validatori se dodaju prilikom kreiranja polja forme, iz paketa <code>wtforms.validators</code>","<code>validate_on_submit()</code> je deo FlaskForm klase i koristi se u okviru route funkcije","Validatori proveravaju obavezne podatke, dužinu i format podatka","Validatori se navode u HTML templejtu, uz svako polje forme"],
+ a:[0,1,2,3],
+ e:"Validatori se navode kao lista pri definiciji polja, a validate_on_submit() proverava ispravnost unutar route funkcije."},
+
+{p:4,s:"39",q:"Zašto se u templejtu koristi <code>url_for()</code> umesto direktnog navođenja URL adresa?",
+ o:["Navigacija se vrši preko imena route funkcija umesto stringova","Ako se URL stringovi promene zbog promena strukture sajta, promena se navodi samo u odgovarajućoj route funkciji","Funkcija se poziva unutar zagrada <code>{{ }}</code>","Argumenti ključne reči se mogu proslediti route funkciji","Zato što se <code>url_for()</code> izvršava brže od direktnog navođenja adrese"],
+ a:[0,1,2,3],
+ e:"url_for() centralizuje definiciju URL-a u route funkciju, pa se pri promeni strukture sajta menja samo jedno mesto umesto više."},
+
+{p:4,s:"45",q:"Šta važi za funkciju <code>redirect()</code>?",
+ o:["Vrši redirekciju korisnika kao promenu rute","Obično je povratna vrednost route funkcije","Kao parametar prihvata string URL adresu, a često se navodi <code>url_for()</code> kao argument","Označava završetak obrade u jednoj ruti i preusmeravanje na logiku nove rute","Vraća sadržaj druge rute, ali bez promene adrese u pretraživaču"],
+ a:[0,1,2,3],
+ e:"Tipičan scenario: posle obrade podataka forme u jednoj ruti prikazuje se templejt druge rute."},
+
+/* ===================== PREDAVANJE 5 — REST API ===================== */
+{p:5,s:"3",q:"Koji su kritični aspekti tradicionalnih Veb aplikacija (interfejs zasnovan na HTML i HTTP)?",
+ o:["Klijent mora razumeti HTML i HTTP","Čitava strana se zamenjuje novom","Identični podaci se razmenjuju u različitim odgovorima","Server mora da čuva stanje svakog klijenta između zahteva"],
+ a:[0,1,2],
+ e:"Tri kritična aspekta: obavezno razumevanje HTML/HTTP na klijentu, zamena cele strane i ponovljena razmena istih podataka (npr. HTML koda)."},
+
+{p:5,s:"5",q:"Koja je razlika između GKI (GUI) i API-ja?",
+ o:["GKI je interfejs između korisnika-čoveka i računara","API je interfejs za komunikaciju mašina — mašina","API koji koristi HTTP je Veb API","API je interfejs između korisnika i računara"],
+ a:[0,1,2],
+ e:"GUI služi komunikaciji čoveka i računara, a API komunikaciji između mašina; kada koristi HTTP, reč je o Veb API-ju."},
+
+{p:5,s:"6",q:"Koje vrste Veb API-ja navodi predavanje?",
+ o:["Remote Procedure Call (RPC) — klijenti pozivaju funkcije na serveru","Remote Method Invocation (RMI) — klijenti pozivaju metode objekata servera","REpresentational State Transfer (REST) — klijenti vrše CRUD operacije nad resursima servera","Remote Data Access (RDA) — klijenti izvršavaju upite nad bazom servera"],
+ a:[0,1,2],
+ e:"Tri vrste: RPC (funkcije), RMI (metode objekata) i REST (CRUD nad resursima)."},
+
+{p:5,s:"7",q:"Ko je i kada definisao REST?",
+ o:["Roy Thomas Fielding","U doktorskoj disertaciji 2000. godine","Brendan Eich, 1995. godine","Tim Berners-Lee, 1989. godine"],
+ a:[0,1],
+ e:"REST je arhitektura komunikacije distribuiranih sistema koju je Roy Thomas Fielding definisao u doktorskoj disertaciji 2000. godine."},
+
+{p:5,s:"7",q:"Koja su ograničenja (karakteristike) REST arhitekture?",
+ o:["Client-Server","Stateless","Cache","Uniform Interface","Layered System i Code-On-Demand","Persistent Connection"],
+ a:[0,1,2,3,4],
+ e:"Šest ograničenja: Client-Server, Stateless, Cache, Uniform Interface, Layered System i Code-On-Demand."},
+
+{p:5,s:"9",q:"Šta podrazumeva REST ograničenje Uniform Interface?",
+ o:["Server šalje podatke u standardnom formatu; formatirani resurs se naziva reprezentacija","Zahtevi identifikuju resurse korišćenjem URI","Klijenti imaju dovoljno informacija u reprezentaciji resursa da bi ga menjali ili brisali","Server šalje linkove u reprezentaciji, tako da klijent dinamički otkriva dodatne resurse","Klijent unapred zna strukturu svih resursa, pa mu server ne šalje metapodatke"],
+ a:[0,1,2,3],
+ e:"Uniform Interface podrazumeva standardni format (reprezentaciju), identifikaciju resursa preko URI, dovoljno metapodataka i linkove ka povezanim resursima."},
+
+{p:5,s:"10",q:"Šta podrazumeva REST ograničenje Client-Server?",
+ o:["Razdvajanje odgovornosti — server čuva i obrađuje podatke","Klijent prikuplja, zahteva, koristi i prezentuje podatke korisniku","Server i klijent se menjaju ili održavaju nezavisno","Promene klijenta zahtevaju obavezne promene servera"],
+ a:[0,1,2],
+ e:"Client-Server znači razdvajanje odgovornosti i nezavisno menjanje/održavanje obe strane, osim promena u izgledu (interfejsu) metoda."},
+
+{p:5,s:"11",q:"Šta podrazumeva REST Statelessness?",
+ o:["Svaki zahtev klijenta je odvojen i nezavisan od drugih zahteva","Server ne sadrži memoriju koja čuva prethodne aktivnosti klijenata","Odgovornost za čuvanje stanja je na klijentskoj strani","Server pamti redosled zahteva svakog klijenta"],
+ a:[0,1,2],
+ e:"Statelessness: zahtevi se tretiraju podjednako i nezavisno, server ne pamti prethodne aktivnosti, a čuvanje stanja je odgovornost klijenta."},
+
+{p:5,s:"12",q:"Šta podrazumeva REST Cacheability?",
+ o:["Klijent i server mogu keširati podatke resursa koji se retko menjaju","Čuvanje odgovora servera na klijentu unapređuje vreme odziva","REST servisi kontrolišu keširanje pomoću response objekata koji označavaju da su cacheable ili noncacheable","Keširanjem upravlja isključivo klijent, jer server ne zna koji se resursi retko menjaju"],
+ a:[0,1,2],
+ e:"Primer sa predavanja: iste slike u zaglavlju i podnožju sajta klijent kešira nakon prvog odgovora servera."},
+
+{p:5,s:"13",q:"Šta podrazumeva REST Layered System?",
+ o:["Klijent nema informaciju da li je povezan sa krajnjim serverom ili međuserverom","Veći broj servera može unaprediti skalabilnost","Slojevi mogu biti aplikacioni server, server zaštite i server skladišta podataka","Klijent mora znati da li komunicira sa krajnjim serverom, kako bi izabrao format podataka"],
+ a:[0,1,2],
+ e:"Layered System znači da klijent ne zna da li komunicira sa krajnjim serverom ili posrednikom, što omogućava skalabilnost."},
+
+{p:5,s:"14",q:"Šta podrazumeva REST Code-On-Demand?",
+ o:["Server može proširiti ili prilagoditi funkcionalnosti klijenta slanjem izvršnog koda","Primer je slanje JavaScript datoteke preko <code>&lt;script src='utility.js'&gt;</code>","Klijent šalje svoj kod serveru na izvršavanje","Server šalje reprezentaciju resursa u izvršnom, binarnom formatu"],
+ a:[0,1],
+ e:"Code-On-Demand: server šalje izvršni kod (npr. JavaScript) kojim proširuje funkcionalnost klijenta."},
+
+{p:5,s:"15",q:"Kojim redom se odvija REST komunikacija?",
+ o:["Klijent šalje zahtev serveru, u skladu sa postojećom API dokumentacijom","Server vrši autentikaciju zahteva klijenta i potvrđuje pravo klijenta da pošalje zahtev","Server prima i obrađuje zahtev","Server šalje odgovor klijentu","Klijent na kraju potvrđuje prijem odgovora posebnim zahtevom"],
+ a:[0,1,2,3],
+ e:"Četiri koraka: slanje zahteva, autentikacija, obrada, slanje odgovora."},
+
+{p:5,s:"16",q:"Šta sve sadrži REST zahtev (request)?",
+ o:["URI","HTTP metod (GET, POST, PUT, DELETE)","HTTP zaglavlje sa metapodacima","Podatke — za POST i PUT","Parametre","Identifikator sesije koji server dodeljuje pri prvom zahtevu"],
+ a:[0,1,2,3,4],
+ e:"REST zahtev sadrži URI, metodu, zaglavlja sa metapodacima, podatke (za POST i PUT) i parametre."},
+
+{p:5,s:"16",q:"Koje vrste parametara može sadržati REST zahtev?",
+ o:["Path parametri (URL adresa)","Query parametri (više informacija o resursu)","Cookie parametri (brza autentikacija)","Header parametri (format zahteva i odgovora)"],
+ a:[0,1,2],
+ e:"Tri vrste: path (u URL adresi), query (dodatne informacije o resursu) i cookie parametri (brza autentikacija)."},
+
+{p:5,s:"17",q:"Šta sadrži REST odgovor (response)?",
+ o:["Statusnu liniju","Telo poruke sa reprezentacijom resursa u XML ili JSON formatu","Zaglavlja sa metapodacima odgovora (server, encoding, date, content type)","Kopiju originalnog zahteva klijenta, radi provere"],
+ a:[0,1,2],
+ e:"REST odgovor: statusna linija, telo sa reprezentacijom resursa (XML ili JSON) i zaglavlja sa metapodacima."},
+
+{p:5,s:"17",q:"Šta znače navedeni statusni kodovi u REST odgovoru?",
+ o:["200 — generički odgovor za uspeh","201 — odgovor na uspešnu POST metodu","400 — neispravan zahtev koji server ne može da obradi","404 — resurs nije pronađen","201 — resurs je obrisan"],
+ a:[0,1,2,3],
+ e:"200 generički uspeh, 201 uspešan POST (kreiran resurs), 400 neispravan zahtev, 404 resurs nije nađen."},
+
+{p:5,s:"19",q:"Kako se CRUD operacije mapiraju na HTTP metode?",
+ o:["Create: POST (ili PUT)","Read: GET","Update: PUT (ili PATCH)","Delete: DELETE","Create: GET"],
+ a:[0,1,2,3],
+ e:"CRUD → POST/PUT za kreiranje, GET za čitanje, PUT/PATCH za ažuriranje, DELETE za brisanje."},
+
+{p:5,s:"19",q:"Koja HTTP zaglavlja se koriste za format podataka resursa u REST-u?",
+ o:["<code>Content-Type</code>","<code>Accept</code>","<code>Location</code>","<code>ETag</code>"],
+ a:[0,1],
+ e:"Content-Type i Accept određuju format podataka resursa. Location se koristi u odgovoru na POST da označi adresu novokreiranog resursa."},
+
+{p:5,s:"23, 24, 25",q:"Šta server vraća u navedenim REST scenarijima?",
+ o:["Uspešan POST /users → <code>201 Created</code> sa zaglavljem <code>Location: /users/3</code>","Uspešan PUT /users/3 → <code>204 No Content</code>","Uspešan DELETE /users/2 → <code>204 No Content</code>","Uspešan DELETE → <code>200 OK</code>, sa obrisanim resursom u telu poruke"],
+ a:[0,1,2],
+ e:"POST koji kreira resurs vraća 201 sa Location zaglavljem; PUT i DELETE u primerima vraćaju 204 No Content."},
+
+{p:5,s:"28",q:"Koje su prednosti REST API-ja?",
+ o:["Skalabilnost — server ne čuva informacije o prethodnim zahtevima, a keširanje redukuje suvišnu komunikaciju","Fleksibilnost — međusobna nezavisnost klijenta i servera","Nezavisnost — tehnologije implementacije mogu biti različite i menjati se nezavisno","Jedinstven format podataka, jer REST propisuje JSON"],
+ a:[0,1,2],
+ e:"Tri prednosti: skalabilnost, fleksibilnost i nezavisnost tehnologija implementacije."},
+
+{p:5,s:"20",q:"Šta važi za REST kao arhitektonski stil?",
+ o:["REST je stil arhitekture, ne skup pravila","U praksi se može realizovati na različite načine","REST je standard sa strogo propisanim skupom obaveznih pravila","REST propisuje tačan izgled URL adresa, kao u Facebook i Twitter API-ju"],
+ a:[0,1],
+ e:"Predavanje eksplicitno naglašava: REST je stil arhitekture, a ne skup pravila, pa se realizuje na različite načine (uporedi Facebook i Twitter API)."},
+
+{p:5,s:"60, 64",q:"Koja je razlika između <code>jsonify()</code> i <code>json.dumps()</code> u Flask-u?",
+ o:["<code>jsonify()</code> konvertuje izlaz funkcije u JSON <b>response objekat</b>","<code>json.dumps()</code> vraća JSON <b>string</b>","<code>jsonify()</code> kreira response objekat sa odgovarajućim zaglavljima (content-type)","Kod <code>json.dumps()</code> se odgovor mora kreirati ručno (npr. preko <code>Response(...)</code>)","<code>jsonify()</code> i <code>json.dumps()</code> vraćaju identičan tip"],
+ a:[0,1,2,3],
+ e:"jsonify() vraća gotov Response objekat sa content-type application/json; json.dumps() vraća samo string i odgovor se mora ručno sastaviti."},
+
+{p:5,s:"61",q:"Šta vraća <code>jsonify()</code> pozvan bez argumenata?",
+ o:["Prazan response objekat","Sa kodom 200 (OK)","Sa sadržajem tipa <code>application/json</code>","Vrednost <code>None</code>"],
+ a:[0,1,2],
+ e:"jsonify() bez argumenata vraća prazan response objekat sa statusom 200 i tipom sadržaja application/json."},
+
+{p:5,s:"43, 45",q:"Šta važi za biblioteku <code>flask-restful</code>?",
+ o:["To je Flask proširenje za kreiranje REST API-ja","Instalira se sa <code>pip install flask-restful</code>","Resursi se definišu kao klase koje nasleđuju <code>Resource</code>","Ruta se dodeljuje pozivom <code>api.add_resource(HelloWorld, '/')</code>","Metode klase resursa se zovu <code>get</code>, <code>put</code>, <code>post</code>, <code>delete</code>","Zamenjuje Flask i ne zahteva <code>Flask(__name__)</code> objekat"],
+ a:[0,1,2,3,4],
+ e:"flask-restful uvodi klase Resource i Api; HTTP metode postaju istoimene metode klase resursa, a ruta se registruje sa add_resource()."},
+
+{p:5,s:"48",q:"Šta važi za krajnje tačke (endpoints) u flask-restful?",
+ o:["Resurs može imati višestruke URL adrese","<code>api.add_resource(HelloWorld, '/', '/hello')</code> registruje dva URL-a za isti resurs","Dva različita resursa mogu deliti isti <code>endpoint</code> naziv","Resurs može imati tačno jednu URL adresu"],
+ a:[0,1,2],
+ e:"Isti resurs može biti dostupan na više URL adresa, a parametar endpoint može biti isti za više resursa (primer: Foo i FooSpecial)."},
+
+{p:5,s:"47",q:"Šta može biti povratna vrednost metode resursa u flask-restful?",
+ o:["Samo podaci — <code>return {'task': 'Hello world'}</code>, podrazumevano 200 OK","Podaci i statusni kod — <code>return {'task': 'Hello world'}, 201</code>","Podaci, statusni kod i sopstvena zaglavlja — <code>return {...}, 201, {'Etag': '...'}</code>","Statusni kod se navodi kao prvi element povratne vrednosti"],
+ a:[0,1,2],
+ e:"Resurs može vratiti samo podatke (200 podrazumevano), podatke sa statusnim kodom ili podatke, kod i zaglavlja."},
+
+{p:5,s:"56, 57, 58, 59",q:"Šta rade funkcije za rad sa JSON-om u Python-u?",
+ o:["<code>json.loads(json_string)</code> — parsira JSON string u Python dictionary objekat","<code>json.load(file_object)</code> — čita datoteku koja sadrži JSON objekat","<code>json.dumps(dict, indent)</code> — konvertuje Python objekat u JSON string","<code>json.dump(dict, file_pointer)</code> — pretvara dictionary u JSON string koji upisuje u datoteku","<code>json.loads()</code> upisuje JSON u datoteku"],
+ a:[0,1,2,3],
+ e:"Pravilo: funkcije bez „s” rade sa datotekama (load/dump), a sa „s” sa stringovima (loads/dumps)."},
+
+/* ===================== PREDAVANJE 6 — JAVASCRIPT OSNOVE ===================== */
+{p:6,s:"3",q:"Šta je tačno u vezi sa istorijatom JavaScript-a?",
+ o:["Nastao je 1995. godine","Autor je Brendan Eich, ko-osnivač Mozille","Nema naročitih veza sa Java jezikom — razlozi za naziv su isključivo marketinški","Prva verzija jezika napisana je za 10 dana","JavaScript je nastao kao pojednostavljena verzija Java jezika"],
+ a:[0,1,2,3],
+ e:"Glavne odluke o jeziku donete su zbog politike kompanije, ne tehničkih razloga. Veza sa Javom je samo marketinška."},
+
+{p:6,s:"3",q:"Šta razlikuje tradicionalni od modernog JavaScript-a?",
+ o:["Tradicionalni JS ima globalne opsege i nema klasa/modula","Tradicionalni JS može imati veće količine koda uređenog sekvencijalno","Moderni JS ima klase i module, uz unapređen izgled i organizaciju koda","Moderni JS je uklonio globalne opsege, pa <code>var</code> više ne postoji"],
+ a:[0,1,2],
+ e:"Tradicionalni JS: globalni opsezi, bez klasa i modula. Moderni (ECMAScript, TypeScript): klase, moduli, bolja organizacija koda."},
+
+{p:6,s:"4",q:"Koje paradigme podržava JavaScript prema predavanju?",
+ o:["Proceduralnu","Objektno-orijentisanu","Funkcionalnu","Deklarativnu"],
+ a:[0,1,2],
+ e:"JavaScript je istovremeno proceduralni, objektno-orijentisani i funkcionalni jezik."},
+
+{p:6,s:"11",q:"Kako se izvršava JavaScript kod?",
+ o:["Ne postoji main metoda — instrukcije se izvršavaju sekvencijalno od vrha ka dnu","Ne postoji prevođenje (kompilacija) koda od strane programera","JS datoteke se prevode i izvršavaju kako ih pretraživač učitava — Just-in-time (JIT) prevođenje","V8-Ignition je najpopularniji JavaScript engine (Chrome, NodeJS)","Kod se u celosti prevodi pre izvršavanja, kao u Java jeziku"],
+ a:[0,1,2,3],
+ e:"JIT prevođenje: izvorni JS kod se prevodi u bajt kod, koji zatim izvršava interpreter. Pomenut je i SpiderMonkey (Mozilla)."},
+
+{p:6,s:"17, 75",q:"Šta važi za hoisting funkcija u JavaScript-u?",
+ o:["Funkcija definisana kao <code>function ime() { ... }</code> je hoisted — može se pozvati pre svoje definicije","Anonimna funkcija nije hoisted i mora se definisati pre nego što se pozove","Sve funkcije u JS-u su hoisted, bez izuzetka","Nijedna funkcija se ne može pozvati pre definisanja"],
+ a:[0,1],
+ e:"Klasična deklaracija funkcije je hoisted. Anonimna funkcija se kreira u vreme izvršavanja (runtime) i nije hoisted."},
+
+{p:6,s:"18",q:"Šta važi za JavaScript funkcije?",
+ o:["Imaju promenjiv broj argumenata (<code>arguments[0]</code> je prvi argument)","Nenavedeni argumenti imaju vrednost <code>undefined</code>","Sve funkcije imaju povratnu vrednost, podrazumevano <code>undefined</code>","Funkcije su objekti prvog reda (first-class objects)","Funkcija bez <code>return</code> naredbe ne vraća ništa, pa se ne može dodeliti varijabli"],
+ a:[0,1,2,3],
+ e:"Kao objekti prvog reda, funkcije mogu biti vrednost varijable ili elementa niza, argument druge funkcije ili povratna vrednost funkcije."},
+
+{p:6,s:"20, 24, 26, 27",q:"Kakav opseg vidljivosti imaju <code>var</code>, <code>let</code> i <code>const</code>?",
+ o:["<code>var</code> ima opseg vidljivosti na nivou funkcije u kojoj je deklarisan","<code>let</code> ima opseg vidljivosti bloka","<code>const</code> ima opseg vidljivosti bloka i predstavlja konstantu","Varijabla deklarisana sa <code>var</code> unutar petlje vidi se i posle petlje","<code>const</code> ima opseg funkcije, jer mu je vrednost konstantna"],
+ a:[0,1,2,3],
+ e:"var je funkcijskog opsega (vidi se posle petlje ili if bloka), dok su let i const blokovskog opsega."},
+
+{p:6,s:"20, 21",q:"Šta važi za deklaraciju varijabli u JavaScript-u?",
+ o:["Tip varijable se ne navodi pre definisanja","Dinamičko tipiziranje — tip se definiše prilikom dodele vrednosti","Varijable dobijaju tip poslednje dodeljene vrednosti","Parametri funkcije se ne deklarišu sa <code>var</code>, <code>let</code> ili <code>const</code>","Parametri funkcije se deklarišu sa <code>let</code>"],
+ a:[0,1,2,3],
+ e:"JS koristi dinamičko tipiziranje; parametri funkcije se navode bez ključne reči za deklaraciju."},
+
+{p:6,s:"29",q:"Šta je blok u JavaScript-u?",
+ o:["Skup naredbi ograničen vitičastim zagradama <code>{}</code>","Skup naredbi ograničen malim zagradama <code>()</code>","Skup naredbi ograničen uglastim zagradama <code>[]</code>","Jedna linija koda"],
+ a:[0],
+ e:"Blok je skup naredbi u vitičastim zagradama — isto kao u Javi, C# i C++."},
+
+{p:6,s:"31",q:"Koji su osnovni (primitivni) tipovi podataka u JavaScript-u?",
+ o:["Boolean","Number","String i Symbol","Null i Undefined","Integer"],
+ a:[0,1,2,3],
+ e:"Primitivni tipovi: Boolean, Number, String, Symbol, Null, Undefined. Integer ne postoji kao poseban tip. Postoje i objektni tipovi (Array, Date, String kao omotač)."},
+
+{p:6,s:"31, 32",q:"Šta važi za brojeve u JavaScript-u?",
+ o:["Number je double — ne postoji poseban integer tip","Svi brojevi su tipa realnog broja","Postoje simboličke konstante <code>-Infinity</code>, <code>+Infinity</code> i <code>NaN</code>","Postoji <code>Math</code> klasa sa metodama kao što su <code>Math.floor</code> i <code>Math.ceil</code>","JavaScript ima zaseban tip za cele brojeve"],
+ a:[0,1,2,3],
+ e:"U JS-u svi brojevi su realni (double). NaN znači not-a-number, a Number.MIN_VALUE / MAX_VALUE odgovaraju -Infinity / +Infinity."},
+
+{p:6,s:"33",q:"Šta važi za stringove u JavaScript-u?",
+ o:["Mogu se koristiti jednostruki ili dvostruki navodnici","Nepromenjivi su (immutable) — novi string se kreira kao rezultat operacije nad originalom","Ne postoji znakovni tip (char)","Veličina stringa se dobija preko atributa <code>length</code>","Stringovi se mogu menjati na mestu, karakter po karakter"],
+ a:[0,1,2,3],
+ e:"JS stringovi su nepromenjivi; nema char tipa; konkatenacija se vrši operatorom +, a dužina se čita preko length atributa."},
+
+{p:6,s:"34",q:"Šta važi za templejt stringove (template strings)?",
+ o:["Omogućavaju dinamičko ugrađivanje i izračunavanje izraza pomoću placeholder-a","String nije ograničen znakovima navoda, već back-tick simbolom <code>``</code>","Sintaksa je <code>`string text ${expression} string text`</code>","Sa tag funkcijom, izračunavanje, konverzija i spajanje se vrše unutar te funkcije","Templejt stringovi koriste jednostruke navodnike"],
+ a:[0,1,2,3],
+ e:"Bez tag funkcije: vrednost izraza se izračuna, konvertuje u string i spoji sa ostatkom. Sa tag funkcijom, sve to radi sama funkcija."},
+
+{p:6,s:"36",q:"Koje vrednosti se u JavaScript-u konvertuju u <code>false</code>?",
+ o:["<code>null</code>","<code>undefined</code>","<code>0</code> i <code>NaN</code>","prazan string <code>''</code>","niz sa jednim elementom <code>[0]</code>"],
+ a:[0,1,2,3],
+ e:"Falsy vrednosti: null, undefined, 0, NaN i prazan string. Sve ostalo (sadržaji svih tipova koji nisu prazni) konvertuje se u true."},
+
+{p:6,s:"37",q:"Šta važi za <code>object</code> tip u JavaScript-u?",
+ o:["JS objekat je kolekcija parova atribut-vrednost (property-value)","Naziv atributa može biti proizvoljan string","Atributima se pristupa kao strukturi (<code>obj2.name</code>) ili kao hash tabeli sa ključevima (<code>obj2['name']</code>)","Atributi se mogu fleksibilno dodavati i brisati (<code>delete obj1.name</code>)","Naziv atributa mora biti validan identifikator, bez razmaka i posebnih znakova"],
+ a:[0,1,2,3],
+ e:"JS objekti su dinamički skup parova property-value; atributi se dodaju i brišu u bilo kom trenutku."},
+
+{p:6,s:"38, 40",q:"Koja je razlika između <code>==</code> i <code>===</code> u JavaScript-u?",
+ o:["<code>==</code> vrši implicitnu konverziju tipa pre poređenja (loose equality)","<code>===</code> nema implicitne konverzije (strict equality)","Kod <code>===</code>, različiti tipovi vrednosti znače da vrednosti nisu jednake","Preporuka predavanja je koristiti <code>===</code> i <code>!==</code> umesto <code>==</code> i <code>!=</code>","<code>===</code> poredi reference, a <code>==</code> vrednosti"],
+ a:[0,1,2,3],
+ e:"== implicitno konvertuje tipove, === ne. Predavanje eksplicitno preporučuje === i !==."},
+
+{p:6,s:"39, 40",q:"Koji od navedenih izraza daju rezultat <code>true</code>?",
+ o:["<code>'' == 0</code>","<code>0 == '0'</code>","<code>null == undefined</code>","<code>NaN == NaN</code>","<code>null === undefined</code>"],
+ a:[0,1,2],
+ e:"Sa loose equality: '' == 0 → true, 0 == '0' → true, null == undefined → true. NaN nikada nije jednak sam sebi, a null === undefined je false jer su tipovi različiti."},
+
+{p:6,s:"42",q:"Koja je razlika između <code>null</code> i <code>undefined</code>?",
+ o:["<code>null</code> predstavlja nultu vrednost kao takvu (kao Java null)","<code>undefined</code> znači da varijabli nije dodeljena vrednost — varijabla je samo deklarisana","Oba pojma znače potpuno istu stvar","<code>null</code> znači da varijabli nije dodeljena vrednost, a <code>undefined</code> je eksplicitna nulta vrednost"],
+ a:[0,1],
+ e:"null je eksplicitna nulta vrednost, undefined znači da vrednost nije dodeljena."},
+
+{p:6,s:"43",q:"Šta važi za nizove (array) u JavaScript-u?",
+ o:["Nizovi su objektni tipovi koji se kreiraju i koriste kao liste","Dužina niza se dobija preko atributa <code>length</code>, koji nije metoda","Indeks počinje od vrednosti 0","Dužina i tipovi elemenata niza su promenjivi","Svi elementi niza moraju biti istog tipa"],
+ a:[0,1,2,3],
+ e:"length je atribut (ne metoda), indeksiranje počinje od 0, a i dužina i tipovi elemenata mogu se menjati."},
+
+{p:6,s:"43",q:"Šta se dešava kada se niz kreira sa <code>new Array(arrayLength)</code>?",
+ o:["Kreira se niz sa praznim elementima","Elementi nisu <code>undefined</code>, već prazni","Kreira se niz čiji su svi elementi <code>null</code>","Kreira se niz sa jednim elementom"],
+ a:[0,1],
+ e:"Kada se prosledi ceo broj, kreira se niz zadate dužine sa praznim elementima (predavanje naglašava: ne undefined)."},
+
+{p:6,s:"48, 49",q:"Koja je razlika između shallow i deep kopiranja nizova?",
+ o:["Kod shallow copy kopiraju se reference na elemente niza, ne i sami elementi","Kod deep copy kopiraju se i reference i elementi niza","Načini za deep copy opisani na predavanju važe samo za jednodimenzione nizove","Shallow copy uvek kopira i sadržaj elemenata"],
+ a:[0,1,2],
+ e:"Shallow copy kopira samo reference; deep copy kopira i same elemente, ali opisane tehnike važe samo za jednodimenzione nizove."},
+
+{p:6,s:"50",q:"Šta važi za <code>Date</code> objekat u JavaScript-u?",
+ o:["To je poseban tip objekta — <code>typeof date == 'object'</code>","Predstavlja broj milisekundi od 1. januara 1970. (UTC)","<code>new Date()</code> vraća tekući datum","Postoje getter/setter metode kao <code>getDate/Time/Hours</code> i <code>setDate/Time/Hours</code>","Date je primitivni tip podataka"],
+ a:[0,1,2,3],
+ e:"Date je objektni, a ne primitivni tip; interno čuva broj milisekundi od 1.1.1970. UTC."},
+
+{p:6,s:"53, 55",q:"Šta važi za obradu izuzetaka u JavaScript-u?",
+ o:["Postoje varijante <code>try...catch</code>, <code>try...finally</code> i <code>try...catch...finally</code>","Naredbe u <code>finally</code> bloku se izvršavaju uvek, nezavisno od toga da li nastane izuzetak","Sadržaj error poruke može varirati u zavisnosti od pretraživača","Više <code>catch</code> klauzula može se koristiti za specifične tipove grešaka (TypeError, RangeError, EvalError)","<code>finally</code> se izvršava samo ako nema izuzetka"],
+ a:[0,1,2,3],
+ e:"finally se izvršava uvek — tipična upotreba je zatvaranje datoteke posle pokušaja upisa."},
+
+{p:6,s:"61, 70",q:"Šta važi za prototipe u JavaScript-u?",
+ o:["Svaki JS objekat je instanca <code>Object</code> i ima privatni atribut <code>prototype</code> sa linkom ka drugom objektu","Referencirani objekat i sam ima <code>prototype</code> atribut, čime se formira lanac prototipa (prototype chain)","Kada se pristupa atributu, on se traži u objektu, pa u njegovom prototipu, pa u prototipu prototipa, sve do kraja lanca","Reč je o nasleđivanju zasnovanom na prototipima","Objekti u JS-u imaju fiksan skup atributa određen pri kreiranju"],
+ a:[0,1,2,3],
+ e:"Atributi objekta su oni koje on sadrži plus atributi celog lanca prototipa; JS objekti su dinamički skup atributa."},
+
+{p:6,s:"65, 67, 68, 70",q:"Kako se promene propagiraju kroz lanac prototipa?",
+ o:["Promene u prototip instanci (npr. <code>Car.prototype</code>) automatski se reflektuju na decu","To važi za dodavanje/uklanjanje atributa i funkcija i za promene vrednosti atributa","Promene u deci se ne vide u roditelju","Kada dete pokuša da promeni atribut roditelja, kreira se novi atribut deteta sa istim nazivom","Promene u detetu se automatski prenose na roditelja"],
+ a:[0,1,2,3],
+ e:"Nasleđivanje kroz prototip je jednosmerno: roditelj → deca. Novi atributi ostaju u instanci u kojoj su kreirani."},
+
+{p:6,s:"71",q:"Šta važi za klase u JavaScript-u (ECMAScript v6, 2015)?",
+ o:["Definicija i nasleđivanje se pišu kao <code>class Rectangle extends Shape</code>","Konstruktor izvedene klase poziva <code>super(...)</code>","Metode se mogu označiti kao statičke ključnom rečju <code>static</code>","Nasleđivanje klasa se u pozadini konvertuje u model nasleđivanja prototipa","Klase u JS-u su potpuno nov mehanizam, nezavisan od prototipa"],
+ a:[0,1,2,3],
+ e:"class sintaksa je „sintaksni šećer” — u pozadini se sve svodi na nasleđivanje prototipa."},
+
+{p:6,s:"73",q:"Šta karakteriše funkcionalno programiranje prema predavanju?",
+ o:["Zasnovano je na ideji da se program tretira kao matematička funkcija","Sve u kodu je ili funkcija ili izraz","Ne postoji stanje (varijable, polja, objekti)","Većina modernih programskih jezika nije isključivo zasnovana na funkcionalnoj paradigmi","JavaScript je čist funkcionalni jezik"],
+ a:[0,1,2,3],
+ e:"JS nije čisto funkcionalan, ali koristi ideje odatle: funkcije kao objekti prvog reda, anonimne i arrow funkcije."},
+
+{p:6,s:"58",q:"Na šta ukazuje <code>this</code> u JavaScript-u?",
+ o:["Van funkcije, ukazuje na globalni kontekst izvršavanja, na primer <code>window</code> objekat","U kontekstu funkcije, ukazuje na funkciju u okviru koje se poziva","<code>this</code> uvek ukazuje na globalni objekat","<code>this</code> se ne može koristiti van klase"],
+ a:[0,1],
+ e:"Vrednost this zavisi od konteksta: globalni kontekst (window) ili kontekst funkcije u kojoj se poziva."},
+
+/* ===================== PREDAVANJE 7 — JS NAPREDNE TEME I DOM ===================== */
+{p:7,s:"3",q:"Šta je transponovanje (transpiling) u kontekstu ECMAScript-a?",
+ o:["Novi elementi jezika se u pozadini transformišu u postojeće, starije mehanizme","Primer je: nasleđivanje klasa → nasleđivanje prototipa","Razlika između novih i starih mehanizama je sintaksna","Razlog je kompatibilnost programa sa različitim tipovima i verzijama izvršnih okruženja (pretraživača)","Razlika između starih i novih mehanizama je semantička, a ne sintaksna"],
+ a:[0,1,2,3],
+ e:"Moderni okviri za razvoj klijentskih aplikacija forsiraju novije elemente jezika; AngularJS nameće TypeScript kao proširenje JS-a."},
+
+{p:7,s:"5",q:"Koja pravila važe za definiciju klase u JavaScript-u?",
+ o:["Koriste se ključne reči <code>class</code> i <code>constructor</code>","U konstruktoru se navode parametri za inicijalizaciju objekata klase","<code>this</code> se odnosi na instancu klase","Get/set metode se definišu ključnim rečima <code>get</code> i <code>set</code>","Unutar get/set metoda, atributima se pristupa sa underscore prefiksom: <code>_imeAtributa</code>","Unutar get/set metoda atributima se pristupa bez prefiksa, direktno po imenu"],
+ a:[0,1,2,3,4],
+ e:"Svih pet pravila navedeno je na slajdu „JS definicija klase - pravila”."},
+
+{p:7,s:"7",q:"Kako se pozivaju get/set metode instance klase?",
+ o:["Navodi se samo ime, bez zagrada <code>()</code>","Navodi se ime sa zagradama, kao kod običnih metoda","Preko <code>Object.get()</code>","Preko <code>this.getAttribute()</code>"],
+ a:[0],
+ e:"Kod poziva get/set metoda navodi se samo ime bez zagrada — koriste se kao da su obična svojstva."},
+
+{p:7,s:"9",q:"Koja pravila važe za nasleđivanje klasa u JavaScript-u?",
+ o:["U konstruktoru izvedene klase mora se pozvati konstruktor roditeljske klase — <code>super</code>","<code>super</code> se poziva sa parametrima roditelja","Rad sa novim atributima je identičan kao kod roditeljske klase (get/set)","Pravila za definisanje metoda su identična kao za proceduralne JS funkcije","<code>super</code> je opcion i može se izostaviti"],
+ a:[0,1,2,3],
+ e:"Poziv super() sa parametrima roditelja obavezan je u konstruktoru izvedene klase."},
+
+{p:7,s:"12, 13",q:"Šta važi za arrow funkcije?",
+ o:["To je koncizniji (sažetiji) način za pisanje JS funkcije, sa oznakom <code>=&gt;</code>","Piše se bez ključne reči <code>function</code>","Uvedene su od ES verzije 6 (2015)","<code>(param) =&gt; expression</code> je ekvivalentno sa <code>=&gt; { return expression; }</code>","Arrow funkcija sa blokom <code>{ }</code> implicitno vraća vrednost poslednjeg izraza"],
+ a:[0,1,2,3],
+ e:"Arrow funkcija sa izrazom umesto bloka implicitno vraća vrednost tog izraza."},
+
+{p:7,s:"15, 16",q:"Kako se pišu zagrade oko parametara arrow funkcije?",
+ o:["Sa jednim parametrom, parametar se ne mora navoditi u zagradama","Bez parametara, zagrade <code>()</code> se moraju navesti","Zagrade su uvek obavezne","Zagrade su uvek zabranjene"],
+ a:[0,1],
+ e:"Jedan parametar može biti bez zagrada; kada parametara nema, prazne zagrade su obavezne."},
+
+{p:7,s:"17",q:"Šta važi za ugrađene JS funkcije <code>map</code>, <code>filter</code> i <code>reduce</code>?",
+ o:["Podrazumevano rade po principu for petlje, tj. iteratora","Mehanizam iteratora je ugrađen u definicije funkcije","Prednost je što se petlja ne mora programirati, već samo željene operacije nad elementima kolekcije","Menjaju originalni niz nad kojim su pozvane"],
+ a:[0,1,2],
+ e:"Iteracija je ugrađena u same funkcije, pa se u kodu navodi samo operacija koja se primenjuje na elemente."},
+
+{p:7,s:"18, 20, 22",q:"Čemu služe map, filter i reduce?",
+ o:["<code>map</code> — mapiranje niza, npr. izdvajanje specifičnih vrednosti iz niza objekata","<code>filter</code> — izdvajanje elemenata koji zadovoljavaju specifičan kriterijum","<code>reduce</code> — agregacija vrednosti niza (sume, prosečne vrednosti)","<code>reduce</code> — izdvajanje elemenata koji zadovoljavaju kriterijum"],
+ a:[0,1,2],
+ e:"map transformiše elemente, filter bira elemente po uslovu, reduce agregira niz u jednu vrednost."},
+
+{p:7,s:"23",q:"Kako radi <code>reduce</code> prilikom sabiranja elemenata niza?",
+ o:["U početnoj iteraciji, <code>total</code> ima vrednost prvog elementa niza","U početnoj iteraciji, drugi parametar ima vrednost sledećeg elementa","U svakoj narednoj iteraciji drugi parametar se pomera udesno i njegova vrednost se dodaje prvom parametru","<code>total</code> uvek počinje od nule"],
+ a:[0,1,2],
+ e:"Prema slajdu, total kreće od vrednosti prvog elementa, a drugi parametar se pomera kroz niz."},
+
+{p:7,s:"24, 25",q:"Šta važi za <code>setInterval</code>?",
+ o:["To je standardna JavaScript tajmer funkcija","Poziva funkciju u redovnim vremenskim intervalima zadatim u milisekundama","Tajmer se pokreće pozivom <code>setInterval</code>, a zaustavlja pozivom <code>clearInterval(timer)</code>","Može se napisati i sa arrow funkcijom: <code>setInterval(() =&gt; { ... }, ms)</code>","Interval se zadaje u sekundama"],
+ a:[0,1,2,3],
+ e:"Interval se zadaje u milisekundama; setInterval vraća identifikator tajmera koji se prosleđuje funkciji clearInterval."},
+
+{p:7,s:"28",q:"Šta je DOM?",
+ o:["Dinamičko stablo HTML objekata, tj. čvorova u vreme prikaza dokumenta","JS može ispitati čvorove kako bi ustanovio stanje elementa","JS može ažurirati atribute objekata (npr. promeniti stil ili sadržaj elementa)","JS kod može dodavati ili uklanjati čvorove i time menjati izgled stranice","DOM stablo se formira na serveru i šalje pretraživaču kao gotova struktura"],
+ a:[0,1,2,3],
+ e:"DOM je Document Object Model — hijerarhija objekata koja predstavlja elemente stranice u vreme prikazivanja."},
+
+{p:7,s:"29",q:"Koja dva osnovna tipa čvora postoje u DOM stablu?",
+ o:["<code>Element</code> — predstavlja HTML element (tagove)","<code>Text</code> — predstavlja tekstualni sadržaj tagova, uključujući prazan prostor","Text čvorovi su listovi stabla i nemaju elemente decu","<code>Attribute</code> — predstavlja atribute HTML tagova"],
+ a:[0,1,2],
+ e:"DOM stablo čine instance tipa Node; dva osnovna tipa su Element i Text, pri čemu Text uključuje i prazan prostor i uvek je list."},
+
+{p:7,s:"29",q:"Šta znače navedeni atributi DOM čvora?",
+ o:["<code>textContent</code> — tekstualni sadržaj čvora i njegove dece","<code>childNodes</code> — niz čvorova dece","<code>parentNode</code> — referenca na roditeljski čvor","<code>childNodes</code> — referenca na prvi element dete"],
+ a:[0,1,2],
+ e:"childNodes je niz sve dece; prvi element dete se dobija preko firstChild."},
+
+{p:7,s:"31",q:"Šta znače navedeni atributi čvora?",
+ o:["<code>nodeType</code> — tip čvora (Element, Text, Comment)","<code>nodeName</code> — ime čvora","<code>nodeValue</code> — vrednost čvora; <code>null</code> za Element, sadržaj za Text tip","<code>nodeValue</code> se može koristiti i za čitanje i za dodelu vrednosti","<code>nodeValue</code> sadrži naziv taga za Element tip čvora"],
+ a:[0,1,2,3],
+ e:"nodeValue je null za Element čvorove, a sadrži tekst za Text čvorove; može se i čitati i postavljati."},
+
+{p:7,s:"31",q:"Koje metode/atributi služe za kretanje po hijerarhijskoj strukturi DOM-a?",
+ o:["<code>parentNode</code> — roditeljski čvor","<code>nextSibling</code> — naredni čvor u istom nivou hijerarhije","<code>previousSibling</code> — prethodni čvor u istom nivou hijerarhije","<code>firstChild</code> i <code>lastChild</code> — prvi i poslednji element dete","<code>childNodes</code> — naredni čvor u istom nivou hijerarhije"],
+ a:[0,1,2,3],
+ e:"querySelector nije za kretanje kroz hijerarhiju, već za pretragu elemenata po CSS selektoru."},
+
+{p:7,s:"33, 34",q:"Šta rade <code>querySelector</code> i <code>querySelectorAll</code>?",
+ o:["<code>document.querySelector('css selector')</code> vraća prvi element koji odgovara datom selektoru","<code>document.querySelectorAll('css selector')</code> vraća sve elemente koji odgovaraju selektoru","<code>querySelector('#button')</code> pronalazi element sa <code>id='button'</code>","<code>querySelectorAll('.quote')</code> vraća listu elemenata sa <code>class='quote'</code>","<code>querySelector</code> vraća sve elemente koji odgovaraju selektoru"],
+ a:[0,1,2,3],
+ e:"querySelector vraća samo prvi element; querySelectorAll vraća listu svih pogođenih elemenata."},
+
+{p:7,s:"35",q:"Koje su DOM lookup metode (drugi način pristupa DOM objektu)?",
+ o:["<code>document.getElementById('element id')</code> — vraća element sa datom vrednošću id atributa","<code>document.getElementsByClassName('class name')</code> — vraća sve elemente sa datom class vrednošću","<code>document.getElementsByTagName('tag name')</code> — vraća sve elemente sa datim nazivom taga","<code>document.getElementsById('id')</code> — vraća sve elemente sa datim id atributom"],
+ a:[0,1,2],
+ e:"Tri lookup metode: getElementById, getElementsByClassName i getElementsByTagName."},
+
+{p:7,s:"37",q:"Kako se pomoću DOM-a menja prikaz elemenata u vreme prikazivanja stranice?",
+ o:["Promena slike na klik dugmeta: <code>img.src = 'newImage.jpg'</code>","Sakrivanje elementa: <code>element.style.display = 'none'</code>","Prikazivanje elementa: <code>element.style.display = ''</code>","Sakrivanje elementa: <code>element.style.display = 'hidden'</code>"],
+ a:[0,1,2],
+ e:"Za sakrivanje se koristi display = 'none', a za vraćanje prikaza prazan string ''."},
+
+{p:7,s:"45",q:"Šta znače navedeni atributi Element tipa čvora?",
+ o:["<code>id</code> — vrednost id atributa HTML elementa kao string","<code>textContent</code> — tekstualni sadržaj čvora i njegove dece","<code>innerHTML</code> — originalan HTML sadržaj između početnog i krajnjeg taga","<code>classList</code> — CSS klase primenjene na dati element","<code>innerHTML</code> — samo tekst bez tagova"],
+ a:[0,1,2,3],
+ e:"innerHTML sadrži originalni HTML (sa tagovima), za razliku od textContent koji daje samo tekst."},
+
+{p:7,s:"39, 40",q:"Kako se dinamički dodaje i uklanja osluškivač događaja?",
+ o:["<code>addEventListener(event name, function name)</code> — svaki DOM objekat ima ovu metodu","<code>removeEventListener(event name, function name)</code> uklanja osluškivač","Uobičajeni tipovi događaja su <code>click</code>, <code>focus</code>, <code>blur</code>","<code>function name</code> je ime funkcije koja će biti pozvana kada događaj nastane","Za uklanjanje osluškivača dovoljno je proslediti samo tip događaja"],
+ a:[0,1,2,3],
+ e:"addEventListener/removeEventListener su metode svakog DOM objekta; drugi parametar je funkcija-obrađivač."},
+
+{p:7,s:"51",q:"Šta rade metode <code>classList</code>?",
+ o:["<code>classList.add('class1','class2')</code> — dodaje specifične CSS klase elementu","<code>classList.remove('class1','class2')</code> — uklanja specifične klase","<code>classList.toggle('class1')</code> — ako se klasa već primenjuje, uklanja je; ako se ne primenjuje, dodaje je","<code>classList.toggle()</code> uklanja sve postojeće klase i dodaje navedenu"],
+ a:[0,1,2],
+ e:"classList kontroliše koje CSS klase su primenjene na element — add, remove i toggle."},
+
+{p:7,s:"49",q:"Koja je razlika između <code>event.target</code> i <code>event.currentTarget</code>?",
+ o:["<code>event.target</code> je element izvor događaja","<code>event.currentTarget</code> je element kojem je pridružen osluškivač za taj događaj","Ako je konkretnom HTML elementu pridružen osluškivač, oba atributa se odnose na isti element","U suprotnom mogu vratiti dva različita elementa","Oba atributa uvek vraćaju isti element"],
+ a:[0,1,2,3],
+ e:"Kada element nema osluškivač, događaj se prenosi kroz DOM čvorove ka roditelju dok se ne naiđe na osluškivač — to je delegiranje događaja (event delegation)."},
+
+{p:7,s:"55",q:"Na koje načine se pomoću DOM-a menja izgled stranice?",
+ o:["Promena sadržaja postojećeg elementa (npr. img i h1 taga) — za jednostavnije i manje promene","Kontrola prikaza sekcija stranice (div, section) pomoću <code>display</code> — za krupnije promene sadržaja","Dodavanje/uklanjanje elemenata: <code>document.createElement()</code>, <code>element.appendChild()</code>, <code>element.remove()</code>","Promenom <code>nodeType</code> postojećeg čvora iz Text u Element"],
+ a:[0,1,2],
+ e:"Tri načina navedena u sažetku: promena sadržaja elementa, kontrola prikaza preko display i dodavanje/uklanjanje čvorova."},
+
+{p:7,s:"41",q:"Kako se HTML atributi odnose prema atributima DOM objekata?",
+ o:["Svaki atribut HTML elementa se preslikava u atribut DOM objekta u vreme prikazivanja stranice","<code>&lt;img src='oldImage.png'&gt;</code> se iz JS-a menja sa <code>element.src = 'newImage.png'</code>","HTML atributi nisu dostupni iz JavaScript-a","Atributi DOM objekata se mogu samo čitati, ne i menjati"],
+ a:[0,1],
+ e:"HTML atributi postaju atributi odgovarajućih DOM objekata i mogu se i čitati i menjati iz JS-a."},
+
+/* ===================== PREDAVANJE 8 — JS DOGAĐAJI I FUNKCIJE ===================== */
+{p:8,s:"3",q:"Šta važi za JavaScript događaje?",
+ o:["Većina koda klijentske Veb aplikacije se pokreće tako što korisnik inicira akciju na korisničkom interfejsu","Fizička akcija korisnika se transformiše u programski objekat događaja","Aplikacija zna koji element je odgovoran za obradu događaja na osnovu funkcije osluškivača","Objekat događaja kreira sam programer, pre nego što ga prosledi osluškivaču"],
+ a:[0,1,2],
+ e:"Primeri događaja: klik miša, klik tastera, pomeranje/promena veličine/zatvaranje prozora, završetak učitavanja stranice, slanje forme, dodir."},
+
+{p:8,s:"4",q:"Šta važi za realizaciju događaja u JavaScript-u?",
+ o:["JavaScript događaji nisu deo jezgra jezika","Njihova realizacija je prepuštena JS rutinama koje implementiraju Veb pretraživači","Događaji nisu vezani samo za korisnički interfejs, već uopšte za celokupan stek aplikacije (frontend, backend)","Mogu se definisati i kastomizovani događaji","Događaji su definisani ECMAScript standardom jezgra jezika"],
+ a:[0,1,2,3],
+ e:"Događaji su izvan jezgra jezika — implementiraju ih pretraživači, odnosno izvršna okruženja poput NodeJS."},
+
+{p:8,s:"4",q:"Koji tipovi događaja su navedeni na predavanju?",
+ o:["Događaji miša (klik, pomeraj, ulazak/izlazak pokazivača)","Događaji tastature (keyup, keydown)","Događaji fokusa (focus, blur)","Događaji forme (reset, submit) i promene prikaza (resize, scroll)","Događaji učitavanja resursa ili pristizanja zahteva (NodeJS)","Događaji pristupa bazi podataka (connect, query)"],
+ a:[0,1,2,3,4],
+ e:"Predavanje navodi sve nabrojane grupe, plus kastomizovane događaje koje sami definišemo."},
+
+{p:8,s:"5",q:"Koja tri koraka se moraju definisati za rad sa događajima?",
+ o:["Šta se generiše — događaj od interesa","Gde se generiše — element od interesa (izvor događaja)","Kako reagovati — odgovor aplikacije na događaj","Kojim redom se osluškivači registruju u kodu"],
+ a:[0,1,2],
+ e:"Uz to je potrebno ustanoviti i mehanizam prosleđivanja i dodeljivanja događaja elementima, jer korisnik često ne pokreće akciju direktno nad elementom."},
+
+{p:8,s:"6",q:"Šta znače navedeni atributi objekta tipa <code>Event</code>?",
+ o:["<code>type</code> — tip događaja kao string simbolička konstanta (click, mousedown, mouseup)","<code>timeStamp</code> — trenutak generisanja događaja","<code>currentTarget</code> — element kojem je pridružen osluškivač","<code>target</code> — element nad kojim je generisan događaj","<code>Event</code> je korena klasa iz koje su izvedene MouseEvent i KeyboardEvent","<code>type</code> vraća HTML tag elementa nad kojim je događaj nastao"],
+ a:[0,1,2,3,4],
+ e:"Event je logička reprezentacija događaja i korena klasa za specifične tipove kao što su MouseEvent i KeyboardEvent."},
+
+{p:8,s:"7",q:"Šta važi za <code>MouseEvent</code>?",
+ o:["<code>button</code>: 0 — levo, 1 — srednje, 2 — desno dugme miša","<code>mouseEnter</code> i <code>mouseLeave</code> se javljaju kada pokazivač ulazi ili napušta površinu elementa kojem je pridružen osluškivač","<code>pageX</code>, <code>pageY</code> — pozicija miša relativna u odnosu na gornji levi ugao <b>dokumenta</b>","<code>screenX</code>, <code>screenY</code> — pozicija miša relativna u odnosu na gornji levi ugao <b>ekrana</b>","<code>button</code>: 1 — levo dugme miša"],
+ a:[0,1,2,3],
+ e:"pageX/pageY su u odnosu na dokument, a screenX/screenY u odnosu na ekran. Levo dugme je 0."},
+
+{p:8,s:"10, 11",q:"Šta važi za KeyboardEvent i Form event?",
+ o:["<code>key</code> — DOM string kao identifikator tastera tastature ('A', 'a', ...)","<code>keyPress</code> — produžen pritisak tastera (duže od par sekundi)","<code>submit</code> — poziva se na klik submit dugmeta","<code>reset</code> — poziva se na klik reset dugmeta","<code>keyUp</code> — pritisak tastera"],
+ a:[0,1,2,3],
+ e:"keyDown je pritisak, keyUp je otpuštanje tastera, keyPress je produžen pritisak."},
+
+{p:8,s:"16, 30—33",q:"Kroz koje faze prolazi događaj u DOM stablu?",
+ o:["Capture faza — objekat događaja putuje od <code>window</code> objekta do roditelja izvora","Target faza — objekat događaja stiže u element koji ima registrovan osluškivač","Bubble faza — objekat događaja putuje od roditelja izvora ka vrhu hijerarhije, tj. window objektu","Postoje samo dve faze: target i bubble"],
+ a:[0,1,2],
+ e:"Pretraživač uvek kreira putanju od izvora do vrha hijerarhije, pa je prolazi u tri faze: capture, target, bubble."},
+
+{p:8,s:"15",q:"Kako se bira smer prosleđivanja događaja u <code>addEventListener</code>?",
+ o:["<code>element.addEventListener(eventType, handler, true)</code> — capture, od spoljnog elementa ka deci","<code>element.addEventListener(eventType, handler, false)</code> — bubble, od ugnježdenih elemenata ka roditeljima","Ako se treći parametar ne navede, podrazumevana vrednost je <code>false</code>","U većini slučajeva se koristi bubble princip","Podrazumevana vrednost trećeg parametra je <code>true</code>"],
+ a:[0,1,2,3],
+ e:"Treći parametar true znači capture, false (podrazumevano) znači bubble, što je i najčešći slučaj."},
+
+{p:8,s:"19, 20",q:"Šta se dešava kada su osluškivači istog tipa događaja pridruženi i roditelju i detetu (bubble)?",
+ o:["Oba osluškivača će se izvršiti klikom na element dete","Podrazumevano će se osluškivač deteta prvi izvršiti","Izvršiće se samo osluškivač roditelja","Izvršiće se samo osluškivač deteta"],
+ a:[0,1],
+ e:"U bubble režimu događaj kreće od deteta ka roditelju, pa se prvo izvršava osluškivač deteta, a zatim roditelja."},
+
+{p:8,s:"21, 34",q:"Šta radi <code>event.stopPropagation()</code>?",
+ o:["Eksplicitno zaustavlja prosleđivanje događaja kroz lanac roditelja","Zaustavlja putovanje događaja u lancu nezavisno od toga u kojoj se fazi nalazi","Svaki element na putanji može zaustaviti put događaja","Poništava podrazumevanu akciju pretraživača, ali ne i propagaciju"],
+ a:[0,1,2],
+ e:"stopPropagation() prekida putovanje događaja kroz lanac — radi i u capture i u bubble fazi."},
+
+{p:8,s:"35",q:"Šta važi za konkurentnost obrade JS događaja?",
+ o:["JS događaji se obrađuju sekvencijalno i procesira se po jedan u datom trenutku","Ne postoji višenitna obrada događaja","Obrada se odvija kao nezavisan tok procesa i ne meša se sa drugim izvršavanjima","Obrada se mora završiti relativno brzo (manje od 10 s), u suprotnom može doći do zastoja","Događaji se obrađuju paralelno u više niti"],
+ a:[0,1,2,3],
+ e:"Suština kontrole je u broju događaja i pravilnoj distribuciji obrade — dovoljan broj obrađivača koji brzo završavaju posao."},
+
+{p:8,s:"36",q:"Koja pravila važe za JavaScript klase?",
+ o:["Ne koristi se ključna reč <code>function</code>","Sve metode su public","Unutar klase se druge metode moraju uvek pozivati sa <code>this</code>","Unutar klase se poljima mora uvek pristupati sa <code>this</code>","Metode se moraju označiti sa <code>public</code> ili <code>private</code>"],
+ a:[0,1,2,3],
+ e:"U JS klasi nema ključne reči function, sve je javno, a pristup metodama i poljima ide isključivo preko this."},
+
+{p:8,s:"37, 38, 39",q:"Na šta ukazuje <code>this</code> u različitim kontekstima?",
+ o:["U konstruktoru klase, <code>this</code> ukazuje na objekat koji se kreira","U obrađivaču događaja, <code>this</code> pokazuje na element kojem je osluškivač pridružen","U funkciji koja se ne poziva iz obrađivača događaja, <code>this</code> ukazuje na objekat iz kog se (ili nad kojim) se funkcija poziva","Vrednost <code>this</code> zavisi od toga kako se funkcija poziva","<code>this</code> uvek ukazuje na isti objekat, bez obzira na kontekst"],
+ a:[0,1,2,3],
+ e:"Svaka funkcija, uključujući i one van klase, sadrži this kao atribut, a njegova vrednost zavisi od načina poziva."},
+
+{p:8,s:"44, 48, 49",q:"Šta važi za funkcije kao objekte u JavaScript-u?",
+ o:["Funkcija u JavaScript-u je objekat tipa <code>Function</code>","Kada se definiše funkcija, kreira se objekat tipa Function čiji je sadržaj kod funkcije","Function objekat sadrži atribute kao što su <code>name</code> i <code>toString()</code>","Function objekat ima <code>call()</code> metodu koja poziva izvršni kod funkcije — sintaksa <code>()</code> u pozadini poziva tu metodu","Objekat tipa Function se kreira tek pri prvom pozivu funkcije"],
+ a:[0,1,2,3],
+ e:"Definisanje funkcije kreira objekat tipa Function; poziv sa () u pozadini poziva njegovu call() metodu."},
+
+{p:8,s:"50",q:"Zašto su funkcije specifičan tip objekta?",
+ o:["To je jedini tip koji ima pridružen izvršni kod, odnosno objekat koji se može izvršavati","Obični objekti se ne mogu izvršavati","Obični objekti mogu imati atribute čija je vrednost objekat tipa Function, pa se ti atributi mogu izvršavati","Svi JS objekti se mogu izvršavati"],
+ a:[0,1,2],
+ e:"Samo funkcije nose izvršni kod; obični objekti se ne izvršavaju, ali mogu imati atribute koji su funkcije."},
+
+{p:8,s:"53",q:"Na koje sve načine se može definisati funkcija u JavaScript-u?",
+ o:["<code>function myFunction(params) { }</code>","<code>const myFunction = function(params) { };</code>","<code>const myFunction = (params) =&gt; { };</code>","Sve tri varijante se pozivaju na identičan način: <code>myFunction();</code>","Svaki način zahteva drugačiju sintaksu poziva"],
+ a:[0,1,2,3],
+ e:"Bez obzira kako je definisana, funkcija se uvek poziva imenom i zagradama."},
+
+{p:8,s:"51, 55",q:"Šta je callback funkcija?",
+ o:["Funkcija koja se prosleđuje kao parametar drugoj funkciji","Moguća je zato što je funkcija objekat prvog reda u JS-u (instanca tipa Object)","Mehanizam koji često koriste JS okviri za razvoj klijentskih Veb aplikacija (Angular, NodeJS, Express, React)","Primer je <code>dragObject.addEventListener('pointerdown', onDragStart)</code>","Callback funkcija je funkcija koja poziva samu sebe"],
+ a:[0,1,2,3],
+ e:"Funkcija koja poziva samu sebe je rekurzivna. Callback je funkcija prosleđena kao parametar — osnova programiranja zasnovanog na obradi događaja."},
+
+{p:8,s:"52",q:"Šta znači da su JS funkcije objekti prvog reda?",
+ o:["Mogu se prosleđivati kao parametri","Mogu biti vrednosti varijabli","Mogu biti definisane bez imena/identifikatora — anonimne i arrow funkcije","Mogu imati sopstvene atribute","Mogu se izvršavati bez poziva, čim se definišu"],
+ a:[0,1,2,3],
+ e:"Objekti prvog reda: mogu se dodeljivati varijablama, prosleđivati kao argumenti, imati atribute i biti anonimni."},
+
+{p:8,s:"14",q:"Zašto je uveden mehanizam kretanja događaja kroz DOM stablo?",
+ o:["Elementi mogu sadržavati druge elemente i svi mogu imati registrovane osluškivače za isti tip događaja","Nekada je pogodnije da unutrašnji elementi (čvorovi) obrade događaj","Nekada je pogodnije da spoljni (roditeljski) čvorovi obrade događaj","Zato što se osluškivač može registrovati samo na <code>window</code> objektu"],
+ a:[0,1,2],
+ e:"Primer sa predavanja: klik na tekst unutar &lt;td&gt; u tabeli — ako svi tagovi imaju osluškivače, potrebno je pravilo koji se i kojim redom pozivaju."},
+
+/* ===================== PITANJA SA JEDNIM TAČNIM ODGOVOROM ===================== */
+{p:1,s:"4",q:"Koji sloj troslojne arhitekture nosi poslovnu logiku aplikacije?",
+ o:["Klijent","Aplikativni server","Perzistencija podataka","DNS server"],
+ a:[1], e:"Poslovna logika je odgovornost aplikativnog servera; klijent je sloj prezentacije, a perzistencija sloj skladištenja."},
+
+{p:1,s:"13, 23",q:"Koji HTTP statusni kod označava da resurs nije pronađen?",
+ o:["400","401","404","500"],
+ a:[2], e:"404 Not Found. 400 je neispravan zahtev, 401 neautentifikovan korisnik, 500 interna greška servera."},
+
+{p:1,s:"54",q:"Koja komponenta MVC obrasca je odgovorna za ponašanje aplikacije, tj. „feel”?",
+ o:["Model","View","Controller","Templejt procesor"],
+ a:[2], e:"Model = podaci, View = izgled (look), Controller = ponašanje (feel)."},
+
+{p:1,s:"67",q:"U MVC primeru kontrole saobraćaja, čemu pripada <code>PedestrianButton</code>?",
+ o:["Modelu","Pogledu","Kontroleru","Bazi podataka"],
+ a:[2], e:"PedestrianButton obaveštava TrafficModel da pešak čeka — to je kontroler. TrafficModel je model, a CarLight i PedestrianLight su pogledi."},
+
+{p:1,s:"36",q:"Šta translira naziv domena u IP adresu računara?",
+ o:["TCP","DNS","CGI","WSGI"],
+ a:[1], e:"DNS (Domain Name System) prevodi nazive domena u IP adrese; TCP definiše format podataka za prenos."},
+
+{p:1,s:"12",q:"Koja HTTP metoda preuzima zaglavlje poruke bez tela poruke?",
+ o:["GET","HEAD","OPTIONS","TRACE"],
+ a:[1], e:"HEAD preuzima samo zaglavlje, bez tela poruke."},
+
+{p:2,s:"5",q:"Kojoj komponenti MVC obrasca odgovara procesor (obrađivač) šablona?",
+ o:["Model","View","Controller","Nijednoj"],
+ a:[2], e:"Model podataka = Model, šabloni = View, procesor šablona = Controller."},
+
+{p:2,s:"18",q:"Kod koje vrste templejt sistema se Veb stranice generišu odvojeno (offline) i prosleđuju Veb serveru za prikaz?",
+ o:["Serverski","Klijentski","Posrednički","Eksterni"],
+ a:[3], e:"Eksterni templejt sistem generiše stranice offline i tek ih onda šalje serveru."},
+
+{p:3,s:"4",q:"Na kom portu se podrazumevano pokreće Flask razvojni server?",
+ o:["80","3000","5000","8080"],
+ a:[2], e:"app.run() pokreće aplikaciju na http://127.0.0.1:5000/."},
+
+{p:3,s:"17",q:"Koja Jinja sintaksa se koristi za komentar u templejtu?",
+ o:["<code>{{ ... }}</code>","<code>{% ... %}</code>","<code>{# ... #}</code>","<code>&lt;!-- ... --&gt;</code>"],
+ a:[2], e:"{{ }} je za vrednosti varijabli, {% %} za izraze/naredbe, {# #} za komentare templejta."},
+
+{p:3,s:"43",q:"Koji je podrazumevani statusni kod funkcije <code>flask.redirect()</code>?",
+ o:["301","302","303","307"],
+ a:[1], e:"Podrazumevana vrednost je HTTP_302_FOUND."},
+
+{p:3,s:"27",q:"Šta vraća funkcija <code>make_response()</code>?",
+ o:["Request objekat","Response objekat","Cookie rečnik","JSON string"],
+ a:[1], e:"make_response() vraća Response objekat iz povratne vrednosti view() funkcije; nad njim se zatim poziva set_cookie()."},
+
+{p:3,s:"61",q:"Koji WTForms validator proverava da li je sadržaj polja u formatu IP adrese?",
+ o:["<code>URL</code>","<code>IPAddress</code>","<code>DataRequired</code>","<code>NumberRange</code>"],
+ a:[1], e:"IPAddress proverava format IP adrese; URL proverava format URL adrese."},
+
+{p:3,s:"68",q:"Koju vrednost mora imati atribut <code>enctype</code> forme da bi upload datoteke radio?",
+ o:["<code>application/json</code>","<code>text/html</code>","<code>multipart/form-data</code>","<code>application/x-www-form-urlencoded</code>"],
+ a:[2], e:"Samo sa enctype='multipart/form-data' datoteka se šalje zajedno sa URL adresom."},
+
+{p:3,s:"68",q:"Koji Flask konfiguracioni ključ definiše maksimalnu veličinu datoteke za upload?",
+ o:["<code>UPLOAD_FOLDER</code>","<code>MAX_CONTENT_PATH</code>","<code>SECRET_KEY</code>","<code>MAX_FILE_SIZE</code>"],
+ a:[1], e:"app.config['MAX_CONTENT_PATH'] zadaje maksimalnu veličinu u bajtovima; UPLOAD_FOLDER je putanja direktorijuma."},
+
+{p:4,s:"34",q:"Koja Jinja naredba u templejtu detetu identifikuje roditeljski templejt?",
+ o:["<code>{% include %}</code>","<code>{% extends %}</code>","<code>{% block %}</code>","<code>{% import %}</code>"],
+ a:[1], e:"{% extends filename %} povezuje dete sa roditeljem; {% block %} označava promenjive delove."},
+
+{p:4,s:"15",q:"Kojim operatorom se filter primenjuje na varijablu templejta?",
+ o:["<code>|</code> (pipe)","<code>&amp;</code>","<code>-&gt;</code>","<code>.</code>"],
+ a:[0], e:"Filteri se primenjuju pipe operatorom, npr. <code>{{ product['name'] | upper }}</code>."},
+
+{p:4,s:"43",q:"Koja funkcija FlaskForm klase se koristi u route funkciji za proveru ispravnosti podataka forme?",
+ o:["<code>validate()</code>","<code>validate_on_submit()</code>","<code>is_valid()</code>","<code>check_form()</code>"],
+ a:[1], e:"validate_on_submit() je deo FlaskForm klase i poziva se unutar route funkcije."},
+
+{p:4,s:"7",q:"U kom poddirektorijumu Flask aplikacije se čuvaju statički resursi kao što je <code>main.css</code>?",
+ o:["<code>templates/</code>","<code>static/</code>","<code>assets/</code>","<code>public/</code>"],
+ a:[1], e:"Templejti idu u templates/, a statički resursi (CSS, slike) u static/."},
+
+{p:5,s:"7",q:"Koliko ograničenja (karakteristika) definiše REST arhitekturu?",
+ o:["Četiri","Pet","Šest","Sedam"],
+ a:[2], e:"Šest: Client-Server, Stateless, Cache, Uniform Interface, Layered System i Code-On-Demand."},
+
+{p:5,s:"17, 23",q:"Koji statusni kod je odgovor na uspešnu POST metodu koja kreira resurs?",
+ o:["200","201","204","301"],
+ a:[1], e:"201 Created. 200 je generički uspeh, a 204 No Content se u primerima vraća na PUT i DELETE."},
+
+{p:5,s:"23",q:"Koje zaglavlje u odgovoru na POST označava adresu novokreiranog resursa?",
+ o:["<code>Content-Type</code>","<code>Accept</code>","<code>Location</code>","<code>ETag</code>"],
+ a:[2], e:"Primer sa predavanja: <code>HTTP/1.1 201 Created</code> uz <code>Location: /users/3</code>."},
+
+{p:5,s:"6",q:"Kod koje vrste Veb API-ja klijenti pozivaju metode objekata na serveru?",
+ o:["RPC","RMI","REST","SOAP"],
+ a:[1], e:"RPC = pozivanje funkcija, RMI = pozivanje metoda objekata, REST = CRUD operacije nad resursima."},
+
+{p:5,s:"60",q:"Koja funkcija vraća JSON <b>string</b>, a ne gotov response objekat?",
+ o:["<code>jsonify()</code>","<code>json.dumps()</code>","<code>make_response()</code>","<code>render_template()</code>"],
+ a:[1], e:"json.dumps() vraća string, pa se odgovor mora ručno sastaviti; jsonify() vraća Response objekat sa content-type zaglavljem."},
+
+{p:5,s:"14",q:"Koje REST ograničenje dozvoljava serveru da proširi funkcionalnost klijenta slanjem izvršnog koda?",
+ o:["Layered System","Uniform Interface","Code-On-Demand","Cache"],
+ a:[2], e:"Code-On-Demand — primer je slanje JavaScript datoteke preko &lt;script src&gt;."},
+
+{p:6,s:"31, 32",q:"Koji tip <b>ne postoji</b> kao poseban primitivni tip u JavaScript-u?",
+ o:["Symbol","Undefined","Integer","Boolean"],
+ a:[2], e:"Number je uvek double — ne postoji poseban celobrojni tip. Primitivni tipovi su Boolean, Number, String, Symbol, Null i Undefined."},
+
+{p:6,s:"39",q:"Koliki je rezultat izraza <code>NaN == NaN</code>?",
+ o:["<code>true</code>","<code>false</code>","<code>NaN</code>","<code>undefined</code>"],
+ a:[1], e:"NaN nikada nije jednak sam sebi — ni sa ==, ni sa ===."},
+
+{p:6,s:"20, 24",q:"Kakav opseg vidljivosti ima varijabla deklarisana sa <code>var</code>?",
+ o:["Blokovski","Funkcijski","Globalni bez izuzetka","Vidljiva je samo u petlji u kojoj je deklarisana"],
+ a:[1], e:"var ima opseg funkcije u kojoj je deklarisan, pa se vidi i posle petlje ili if bloka; let i const imaju blokovski opseg."},
+
+{p:6,s:"50",q:"Šta vraća <code>typeof</code> primenjen na Date objekat?",
+ o:["<code>'date'</code>","<code>'object'</code>","<code>'number'</code>","<code>'string'</code>"],
+ a:[1], e:"Date je poseban tip objekta: <code>typeof date == 'object'</code>."},
+
+{p:6,s:"34",q:"Kojim simbolom se ograničava templejt string (template string)?",
+ o:["Jednostrukim navodnikom <code>'</code>","Dvostrukim navodnikom <code>\"</code>","Back-tick simbolom <code>`</code>","Kosom crtom <code>/</code>"],
+ a:[2], e:"Templejt string nije ograničen znakovima navoda, već back-tick simbolom, uz placeholder <code>${expression}</code>."},
+
+{p:7,s:"33",q:"Koja metoda vraća samo <b>prvi</b> element koji odgovara CSS selektoru?",
+ o:["<code>querySelectorAll</code>","<code>querySelector</code>","<code>getElementsByClassName</code>","<code>getElementsByTagName</code>"],
+ a:[1], e:"querySelector vraća prvi pogođeni element; querySelectorAll vraća sve."},
+
+{p:7,s:"29",q:"Koji tip DOM čvora je uvek list stabla i nema elemente decu?",
+ o:["Element","Text","Comment","Document"],
+ a:[1], e:"Text čvor predstavlja tekstualni sadržaj tagova (uključujući prazan prostor) i uvek je list stabla."},
+
+{p:7,s:"51",q:"Koja <code>classList</code> metoda dodaje klasu ako je nema, a uklanja je ako je već primenjena?",
+ o:["<code>add</code>","<code>remove</code>","<code>toggle</code>","<code>replace</code>"],
+ a:[2], e:"toggle() naizmenično dodaje i uklanja navedene klase."},
+
+{p:7,s:"12",q:"U kojoj verziji ECMAScript-a su uvedene arrow funkcije?",
+ o:["ES3 (1999)","ES5 (2009)","ES6 (2015)","ES2020"],
+ a:[2], e:"Arrow funkcije su uvedene od ES verzije 6, 2015. godine — kao i class sintaksa."},
+
+{p:8,s:"7",q:"Koja vrednost atributa <code>button</code> objekta MouseEvent odgovara levom dugmetu miša?",
+ o:["0","1","2","3"],
+ a:[0], e:"0 — levo, 1 — srednje, 2 — desno dugme miša."},
+
+{p:8,s:"15, 24",q:"Koju vrednost trećeg parametra <code>addEventListener</code> treba proslediti da bi se koristila capture faza?",
+ o:["<code>true</code>","<code>false</code>","<code>'capture'</code>","Parametar se izostavlja"],
+ a:[0], e:"true znači capture (od roditelja ka detetu); false je podrazumevano i znači bubble."},
+
+{p:8,s:"16",q:"Koja faza propagacije ide od roditelja izvora ka vrhu hijerarhije, tj. ka <code>window</code> objektu?",
+ o:["Capture faza","Target faza","Bubble faza","Delegate faza"],
+ a:[2], e:"Bubble faza ide naviše ka window objektu; capture ide naniže od window objekta ka roditelju izvora."},
+
+{p:8,s:"39, 40",q:"Na šta ukazuje <code>this</code> unutar funkcije koja je registrovana kao obrađivač događaja?",
+ o:["Na globalni <code>window</code> objekat","Na element kojem je osluškivač pridružen","Na sam objekat događaja","Na <code>document</code>"],
+ a:[1], e:"U obrađivaču događaja this pokazuje na element kojem je osluškivač pridružen, jer se funkcija poziva iz addEventListener."},
+
+{p:8,s:"55",q:"Kako se naziva funkcija koja se prosleđuje kao parametar drugoj funkciji?",
+ o:["Anonimna funkcija","Arrow funkcija","Callback funkcija","Rekurzivna funkcija"],
+ a:[2], e:"Callback funkcija. Ona može biti anonimna ili imenovana — to su dva različita svojstva."},
+
+/* ===================== DOPUNA — teme koje ranije nisu bile pokrivene ===================== */
+{p:1,s:"26",q:"Kako Veb server obrađuje HTTP zahtev za čitanje datoteke?",
+ o:["Otvaranje i čitanje datoteke mogu pristupati memorijskom disku računara, što je spora operacija","Zahtevi se obrađuju konkurentno, tako što se za svaki novi zahtev kreira odvojen tok kontrole programa (nit)","Sadržaj datoteke se upisuje u TCP konekciju posle zaglavlja odgovora","Server obrađuje zahteve strogo jedan za drugim, dok se prethodni ne završi","Datoteka se pre slanja u celosti prevodi u bajt kod"],
+ a:[0,1,2],
+ e:"Pristup disku je spor, pa se zahtevi obrađuju konkurentno (ili istovremeno) — za svaki novi zahtev kreira se odvojena nit."},
+
+{p:1,s:"57",q:"Šta čini podatke modela prema predavanju?",
+ o:["Svi promenjivi podaci potrebni za rad kontrolera i generisanje templejta","Podaci koji traju za vreme korišćenja aplikacije, tj. korisničke sesije","Događaji kao objekti, strukture podataka, instance klasa i podaci dobijeni od serverske logike","Perzistentni podaci nisu deo modela klijentske strane, već se dobavljaju od servera po potrebi","Perzistentni podaci iz baze su stalni deo modela klijentske strane"],
+ a:[0,1,2,3],
+ e:"Model klijentske strane čine promenjivi podaci koji traju koliko i sesija. Perzistentni podaci (baza, datoteke) nisu deo tog modela — dobavljaju se od serverske strane na zahtev."},
+
+{p:1,s:"58, 59, 60",q:"Na koja pitanja odgovara svaki sloj MVC-a prema predavanju?",
+ o:["Model: u koju tabelu baze treba upisati ili iz nje pročitati podatke","Model: koji SQL upit će dobaviti potrebne podatke","Pogled: na koji način predstaviti podatke o artiklu i koju kombinaciju boja koristiti za dobar kontrast","Kontroler: osluškuje promene u modelu i pogledu i daje notifikaciju da se promena može sprovesti","Pogled: koji SQL upit će dobaviti potrebne podatke"],
+ a:[0,1,2,3],
+ e:"Model komunicira sa izvorom podataka, pogled odlučuje kako se podaci prezentuju, a kontroler posreduje između njih — npr. prosleđuje modelu podatke za pretragu artikala."},
+
+{p:1,s:"31",q:"Šta prema predavanju čini sadržaj Veb aplikacije u modernim okvirima?",
+ o:["Dobar deo sadržaja su predefinisane datoteke — templejti prikaza (HTML, CSS), JavaScript i Python datoteke","Preostali sadržaj je vezan za komunikaciju pretraživača i servera, koja uključuje podatke modela","To obuhvata CRUD operacije nad podacima modela i podatke sesije (login i drugi)","Zahtevi procesiranja Veb zahteva su niski — GET statičkih datoteka i CRUD operacije nad bazom","Sav sadržaj se generiše dinamički pri svakom zahtevu, pa predefinisanih datoteka nema"],
+ a:[0,1,2,3],
+ e:"Većina sadržaja su unapred pripremljene datoteke; dinamika se svodi na CRUD nad modelom i podatke sesije, pa su zahtevi procesiranja niski."},
+
+{p:1,s:"32",q:"Koja je razlika između programiranja klijentske i serverske strane?",
+ o:["Kod klijentske strane napisani kod se izvršava lokalno, u pretraživaču računara","Kod serverske strane napisani kod se izvršava na serveru","Server je posebna vrsta programa koja generiše Veb stranice i druge Veb resurse","Kod serverske strane se izvršava u pretraživaču, ali sa većim ovlašćenjima","Obe strane izvršavaju isti kod, samo u različitim okruženjima"],
+ a:[0,1,2],
+ e:"Klijentski kod se izvršava u pretraživaču (gradivo kursa Veb dizajn), a serverski na serveru — programu koji generiše Veb stranice i druge resurse."},
+
+{p:3,s:"11, 12",q:"Šta važi za generisanje sadržaja bez templejta (inline)?",
+ o:["Funkcija pogleda može vratiti HTML kao običan string","Primer <code>return '&lt;h1&gt;Hello, World!&lt;/h1&gt;'</code> prikazuje naslov prvog nivoa na datoj URL putanji","Takav string Flask ne prikazuje kao HTML, već kao običan tekst","Inline generisanje zahteva da datoteka bude u <code>templates/</code> direktorijumu"],
+ a:[0,1],
+ e:"HTML može biti rezultat funkcije pogleda i vraća se kao string; <code>templates/</code> direktorijum je potreban tek kada se koristi <code>render_template</code>."},
+
+{p:4,s:"31, 32",q:"Kako se piše uslovno grananje u Jinja templejtu?",
+ o:["Blok počinje sa <code>{% if uslov %}</code>, a završava se sa <code>{% endif %}</code>","Za višestruke uslove koriste se <code>{% elif %}</code> i <code>{% else %}</code>","Naredbom se kontroliše sadržaj koji vraćaju Flask rute","Blok se zatvara sa <code>{% endfor %}</code>","Uslov se navodi u dvostrukim vitičastim zagradama: <code>{{ if uslov }}</code>"],
+ a:[0,1,2],
+ e:"Sadržaj vezan za if naredbu smešta se u blok između <code>{% if %}</code> i <code>{% endif %}</code>; else i elif pokrivaju višestruke uslove."},
+
+{p:4,s:"33",q:"Kako se piše petlja u Jinja templejtu?",
+ o:["<code>{% for local_var in iterator %}</code> … <code>{% endfor %}</code>","Petlja omogućava ponavljanje sadržaja ili iteraciju kroz podatke templejta","Kroz rečnik se iterira sa <code>{% for key, value in result.items() %}</code>","Petlja se zatvara sa <code>{% endwhile %}</code>","Broj ponavljanja se navodi kao drugi argument funkcije <code>render_template</code>"],
+ a:[0,1,2],
+ e:"Blok petlje ide između <code>{% for %}</code> i <code>{% endfor %}</code>; nad rečnikom se iterira preko <code>items()</code>."},
+
+{p:4,s:"29",q:"Kako podaci aplikacije stižu do templejta?",
+ o:["Prenose se pomoću argumenata ključnih reči funkcije <code>render_template</code>","U templejtu se vrednosti koriste u izrazima <code>{{ }}</code>","<code>render_template('my.html', template_var=flask_var)</code> vezuje vrednost iz Flask koda za ime u templejtu","Templejt sam čita vrednosti iz globalnih promenjivih Flask aplikacije","Ime varijable u templejtu mora biti identično imenu promenjive u Flask kodu"],
+ a:[0,1,2],
+ e:"Ime u templejtu je levo od znaka jednakosti, a vrednost iz Flask koda desno — imena ne moraju biti ista."},
+
+{p:5,s:"8",q:"Na šta upućuje naziv Representational State Transfer, prema odlomku iz disertacije?",
+ o:["Na sliku ponašanja dobro projektovane Veb aplikacije kao mreže Veb stranica","Mreža stranica se posmatra kao virtuelna mašina stanja (virtual state-machine)","Korisnik napreduje kroz aplikaciju biranjem linkova, što predstavlja prelaze između stanja","Rezultat je sledeća stranica, koja predstavlja sledeće stanje aplikacije, prenesena korisniku i prikazana","Naziv se odnosi na prenos stanja sesije sa klijenta na server pri svakom zahtevu"],
+ a:[0,1,2,3],
+ e:"Fielding naziv objašnjava kao sliku mreže stranica koja se ponaša kao virtuelna mašina stanja: linkovi su prelazi, a svaka nova stranica je novo stanje aplikacije."},
+
+{p:5,s:"21, 22",q:"Kako se preko GET metode dobavljaju resursi u REST-u?",
+ o:["<code>GET /users</code> vraća kolekciju, a <code>GET /users/2</code> pojedinačni resurs","Filtriranje se može zadati query parametrima, npr. <code>GET /users?gender=female&amp;age=18</code>","Format odgovora klijent traži zaglavljem <code>Accept</code>, npr. <code>application/json</code>","Pre JSON-a je bio popularan format <code>application/xml</code>","Format odgovora klijent traži zaglavljem <code>Content-Type</code> u zahtevu"],
+ a:[0,1,2,3],
+ e:"Isti podaci se mogu dobaviti i kroz putanju (<code>/users/gender/female</code>) i kroz query parametre (<code>/users?gender=female</code>); format se traži zaglavljem Accept."},
+
+{p:6,s:"13, 14",q:"Šta važi za osnovnu sintaksu JavaScript-a?",
+ o:["<code>for (let i = 0; i &lt; 5; i++) { … }</code> je ispravna for petlja","Komentari se pišu kao <code>// komentar</code> ili <code>/* komentar */</code>","Naredbe skoka su <code>continue</code>, <code>break</code> i <code>return</code>","Standardni operatori uključuju <code>%</code>, <code>&amp;&amp;</code>, <code>||</code> i uslovni operator <code>?:</code>","Blokovi naredbi se označavaju uvlačenjem, bez vitičastih zagrada"],
+ a:[0,1,2,3],
+ e:"JS koristi sintaksu blizu C/Java porodice: vitičaste zagrade za blokove, isti skup operatora i naredbi skoka."},
+
+{p:6,s:"44, 45, 46, 47",q:"Koje operacije nad nizovima se obrađuju na predavanju?",
+ o:["Kreiranje niza i pristup elementima niza","Iteracija niza — for petljom i pomoću funkcije","Dodavanje i uklanjanje elementa sa početka, odnosno sa kraja niza","Uklanjanje podniza od zadate pozicije (indeksa)","Sortiranje niza po više kriterijuma istovremeno"],
+ a:[0,1,2,3],
+ e:"Predavanje prolazi kroz kreiranje, pristup, iteraciju, dodavanje/uklanjanje sa oba kraja, indeksiranje i uklanjanje podniza, pa zatim kopiranje (shallow i deep)."},
+
+{p:8,s:"43, 44",q:"Kako predavanje poredi JavaScript sa klasičnim programskim jezicima?",
+ o:["U klasičnim jezicima kod je lista instrukcija, a svaka linija koda je naredba","U klasičnim jezicima funkcija je grupa naredbi označena labelom, koje se sve izvršavaju pri pozivu","U klasičnim jezicima varijabla su podaci označeni labelom","U JavaScript-u funkcije predstavljaju i klasične funkcije i varijable","U JavaScript-u varijabla može sadržati kod, ali funkcija ne može biti vrednost varijable"],
+ a:[0,1,2,3],
+ e:"Ključna razlika: u JS-u je funkcija objekat tipa <code>Function</code>, pa istovremeno igra ulogu i klasične funkcije i varijable."},
+];
+</script>
+
+<script>
+(function(){
+  var LEC = {
+    1:"1 · Uvod u VP", 2:"2 · Dinamičko generisanje sadržaja", 3:"3 · Veb server (Flask)",
+    4:"4 · Generisanje prikaza", 5:"5 · REST API", 6:"6 · JavaScript osnove",
+    7:"7 · JS napredne teme i DOM", 8:"8 · JS događaji i funkcije"
+  };
+  var LECSHORT = {1:"P1 Uvod",2:"P2 Templejti",3:"P3 Flask",4:"P4 Prikaz",5:"P5 REST",6:"P6 JS",7:"P7 DOM",8:"P8 Događaji"};
+
+  /* Kolokvijum I pokriva predavanja 1–4 (server, MVC, templejti),
+     Kolokvijum II predavanja 5–8 (REST i klijentska strana). */
+  var K1_KVOTE = {1:12, 2:4, 3:8, 4:6};   // = 30
+  var K2_KVOTE = {5:8,  6:9, 7:7, 8:6};   // = 30
+
+  var listEl   = document.getElementById('list');
+  var filtEl   = document.getElementById('filters');
+  var barEl    = document.getElementById('bar');
+  var setEl    = document.getElementById('set');
+  var shuffleEl= document.getElementById('shuffle');
+  var revealEl = document.getElementById('reveal');
+  var resetEl  = document.getElementById('reset');
+  var hintEl   = document.getElementById('hint');
+
+  var active = new Set([1,2,3,4,5,6,7,8]);
+  var order  = [];
+  var scores = {};   // pozicija u order -> broj bodova (0..1)
+
+  function shuffled(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t=a[i]; a[i]=a[j]; a[j]=t;
+    }
+    return a;
+  }
+
+  /* ---------- sastavljanje primera za kolokvijume ---------- */
+  function buildVariants(kvote, n){
+    var variants = [];
+    for(var v=0; v<n; v++) variants.push([]);
+    Object.keys(kvote).forEach(function(k){
+      var lec = +k, need = kvote[k];
+      var lecPool = QUESTIONS.map(function(q,i){return i;}).filter(function(i){ return QUESTIONS[i].p === lec; });
+      var deck = [];
+      for(var v=0; v<n; v++){
+        var pick = [], guard = 0;
+        while(pick.length < need && guard++ < 5000){
+          if(!deck.length) deck = shuffled(lecPool);
+          var x = deck.pop();
+          if(pick.indexOf(x) < 0) pick.push(x);
+        }
+        variants[v] = variants[v].concat(pick);
+      }
+    });
+    // unutar primera idemo kroz gradivo redom: po predavanju, pa po rednom broju
+    variants.forEach(function(arr){
+      arr.sort(function(a,b){ return QUESTIONS[a].p - QUESTIONS[b].p || a - b; });
+    });
+    return variants;
+  }
+  var K1 = buildVariants(K1_KVOTE, 5);
+  var K2 = buildVariants(K2_KVOTE, 5);
+
+  /* ---------- filteri po predavanju (samo u režimu „sva pitanja”) ---------- */
+  function buildFilters(){
+    filtEl.innerHTML = '';
+    if(setEl.value !== 'all'){ filtEl.style.display = 'none'; return; }
+    filtEl.style.display = '';
+    var all = document.createElement('button');
+    all.textContent = 'sve (' + QUESTIONS.length + ')';
+    all.onclick = function(){ active = new Set([1,2,3,4,5,6,7,8]); buildFilters(); render(); };
+    filtEl.appendChild(all);
+    Object.keys(LECSHORT).forEach(function(k){
+      var n = +k;
+      var cnt = QUESTIONS.filter(function(q){return q.p===n;}).length;
+      var b = document.createElement('button');
+      b.textContent = LECSHORT[n] + ' (' + cnt + ')';
+      if(active.has(n)) b.className = 'on';
+      b.onclick = function(){
+        if(active.has(n)) active.delete(n); else active.add(n);
+        if(!active.size) active.add(n);
+        buildFilters(); render();
+      };
+      filtEl.appendChild(b);
+    });
+  }
+
+  /* ---------- statistika ---------- */
+  function updateStats(){
+    var total = order.length;
+    var keys = Object.keys(scores);
+    var done = keys.length, pts = 0, ok = 0, part = 0, bad = 0;
+    keys.forEach(function(k){
+      var v = scores[k];
+      pts += v;
+      if(v === 1) ok++; else if(v === 0) bad++; else part++;
+    });
+    function fmt(x){ return (Math.round(x*100)/100).toString().replace('.', ','); }
+    document.getElementById('s-total').textContent = total;
+    document.getElementById('s-done').textContent  = done;
+    document.getElementById('s-pts').textContent   = fmt(pts);
+    document.getElementById('s-max').textContent   = total;
+    document.getElementById('s-ok').textContent    = ok;
+    document.getElementById('s-part').textContent  = part;
+    document.getElementById('s-bad').textContent   = bad;
+    document.getElementById('s-pct').textContent   = done ? Math.round(pts/done*100) + '%' : '—';
+    barEl.style.width = total ? (done/total*100) + '%' : '0%';
+  }
+
+  /* ---------- bodovanje jednog pitanja ---------- */
+  function grade(card, pos){
+    if(card.classList.contains('done')) return;
+    var boxes = card.querySelectorAll('input[type=checkbox]');
+    var okSet = card._ok;
+    var picked = [], hitovi = 0, promasaji = 0;
+    boxes.forEach(function(b,i){
+      if(!b.checked) return;
+      picked.push(i);
+      if(okSet.has(i)) hitovi++; else promasaji++;
+    });
+    if(!picked.length) return;
+
+    var score = promasaji > 0 ? 0 : hitovi / okSet.size;
+    scores[pos] = score;
+    card.classList.add('done');
+    card.classList.add(score === 1 ? 'correct' : (score === 0 ? 'wrong' : 'partial'));
+
+    boxes.forEach(function(b,i){
+      var li = b.closest('.opt'), mark = li.querySelector('.mark');
+      if(okSet.has(i) && b.checked){ li.classList.add('is-ok');   mark.textContent = '✓'; }
+      else if(okSet.has(i))        { li.classList.add('is-miss'); mark.textContent = '✓'; }
+      else if(b.checked)           { li.classList.add('is-bad');  mark.textContent = '✗'; }
+    });
+
+    var v = card.querySelector('.verdict');
+    var bod = (Math.round(score*100)/100).toString().replace('.', ',');
+    if(score === 1){
+      v.textContent = 'Tačno · ' + bod + ' bod';
+      v.className = 'verdict ok';
+    } else if(score === 0){
+      v.textContent = 'Netačno · 0 bodova — izabran je netačan odgovor (tačnih je ' + okSet.size + ')';
+      v.className = 'verdict bad';
+    } else {
+      v.textContent = 'Delimično · ' + bod + ' boda — pogođeno ' + hitovi + ' od ' + okSet.size + ' tačnih';
+      v.className = 'verdict partial';
+    }
+    var btn = card.querySelector('.check');
+    if(btn) btn.remove();
+    updateStats();
+  }
+
+  /* ---------- prikaz odgovora bez bodovanja ---------- */
+  function reveal(){
+    listEl.querySelectorAll('.q').forEach(function(card, n){
+      if(card.classList.contains('done')) return;
+      var q = QUESTIONS[order[n]];
+      card.classList.add('done');
+      card.querySelectorAll('input[type=checkbox]').forEach(function(b,i){
+        if(card._ok.has(i)){
+          b.closest('.opt').classList.add('is-ok');
+          b.closest('.opt').querySelector('.mark').textContent = '✓';
+        }
+      });
+      card.querySelector('.verdict').textContent = 'Prikazano — tačnih odgovora: ' + card._ok.size;
+      var btn = card.querySelector('.check');
+      if(btn) btn.remove();
+    });
+  }
+
+  /* ---------- koja pitanja ulaze u tekući skup ---------- */
+  function currentPool(){
+    var val = setEl.value;
+    if(val === 'all'){
+      return QUESTIONS.map(function(q,i){return i;}).filter(function(i){ return active.has(QUESTIONS[i].p); });
+    }
+    var v = +val.slice(3);
+    return (val.charAt(1) === '1' ? K1 : K2)[v].slice();
+  }
+
+  function hintText(){
+    var val = setEl.value;
+    if(val === 'all'){
+      hintEl.textContent = 'Filtriraj po predavanju, ili gore izaberi primer za kolokvijum.';
+      return;
+    }
+    var kv = val.charAt(1) === '1' ? K1_KVOTE : K2_KVOTE;
+    var delovi = Object.keys(kv).map(function(k){ return LECSHORT[k] + ': ' + kv[k]; });
+    hintEl.textContent = 'Raspored po celinama — ' + delovi.join(' · ') +
+      '. Primeri se sastavljaju pri otvaranju stranice; osveži stranicu za novu seriju.';
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    var pool = currentPool();
+    order = shuffleEl.checked ? shuffled(pool) : pool;
+    scores = {};
+    listEl.innerHTML = '';
+    hintText();
+
+    if(!order.length){
+      listEl.innerHTML = '<p class="empty">Nijedno predavanje nije izabrano.</p>';
+      updateStats(); return;
+    }
+
+    order.forEach(function(idx, n){
+      var q = QUESTIONS[idx];
+      var card = document.createElement('section');
+      card.className = 'q';
+
+      var head = document.createElement('div');
+      head.className = 'qhead';
+      var num = document.createElement('span');
+      num.className = 'qnum';
+      num.textContent = (n+1) + ' · ' + LECSHORT[q.p].split(' ')[0];
+      var txt = document.createElement('p');
+      txt.className = 'qtext';
+      txt.innerHTML = q.q;
+      head.appendChild(num); head.appendChild(txt);
+      card.appendChild(head);
+
+      // redosled opcija se meša pri svakom renderu — tačni nisu uvek prvih N
+      var perm = shuffled(q.o.map(function(_, i){ return i; }));
+      card._ok = new Set();
+      perm.forEach(function(orig, pos){ if(q.a.indexOf(orig) >= 0) card._ok.add(pos); });
+
+      var ul = document.createElement('ul');
+      ul.className = 'opts';
+      perm.forEach(function(orig){
+        var opt = q.o[orig];
+        var li = document.createElement('li');
+        li.className = 'opt';
+        var lab = document.createElement('label');
+        lab.style.display = 'contents';
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        var sp = document.createElement('span');
+        sp.innerHTML = opt;
+        var mk = document.createElement('span');
+        mk.className = 'mark';
+        lab.appendChild(cb); lab.appendChild(sp); lab.appendChild(mk);
+        li.appendChild(lab);
+        ul.appendChild(li);
+      });
+      card.appendChild(ul);
+
+      var foot = document.createElement('div');
+      foot.className = 'qfoot';
+      var btn = document.createElement('button');
+      btn.className = 'check primary';
+      btn.textContent = 'Proveri';
+      btn.onclick = function(){ grade(card, n); };
+      foot.appendChild(btn);
+      var v = document.createElement('span');
+      v.className = 'verdict';
+      foot.appendChild(v);
+      card.appendChild(foot);
+
+      var ex = document.createElement('div');
+      ex.className = 'expl';
+      ex.innerHTML = q.e + '<span class="src">' + LEC[q.p] + ' · slajd ' + q.s + '</span>';
+      card.appendChild(ex);
+
+      listEl.appendChild(card);
+    });
+
+    updateStats();
+  }
+
+  setEl.addEventListener('change', function(){ buildFilters(); render(); window.scrollTo({top:0, behavior:'smooth'}); });
+  shuffleEl.addEventListener('change', render);
+  revealEl.addEventListener('click', reveal);
+  resetEl.addEventListener('click', function(){ render(); window.scrollTo({top:0, behavior:'smooth'}); });
+
+  buildFilters();
+  render();
+})();
+</script>
+</body>
+</html>

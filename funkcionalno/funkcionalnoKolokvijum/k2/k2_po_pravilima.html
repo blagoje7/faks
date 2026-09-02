@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kolokvijum II — Workflow i Task</title>
+  </head>
+  <body>
+    <script>
+      // ═══════════════════════════════════════════════════════════════════════
+      // Funkcionalno programiranje — Kolokvijum II: Workflow i Task
+      // Rešenje po pravilima kolokvijuma: prazan <body>, bez CSS-a, sve u <script>.
+      // Rezultati se vide u konzoli pregledača (F12 → Console).
+      //
+      // Objašnjenje svakog dela: k2/k2_resenje.ipynb — jedinice istim redosledom.
+      // U običnom <script> nema await na najvišem nivou, pa je demonstracija
+      // spakovana u funkciju demo() koja se poziva na dnu fajla.
+      // ═══════════════════════════════════════════════════════════════════════
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // JEDINICA 1 · Task
+      //   mehanizam i razlog:  k2_resenje.ipynb → "Jedinica 1" → "Zašto ovaj mehanizam"
+      //   FP naspram OOP:      k2_resenje.ipynb → "Jedinica 1" → "Funkcionalna paradigma prema OOP"
+      // ═══════════════════════════════════════════════════════════════════════
+
+      const Task = (naziv, definicija) => Object.freeze({
+          naziv,
+          definicija,                                                    // funkcija se čuva kao običan podatak
+
+          execute: async (...argumenti) => definicija(...argumenti)      // proizvoljan broj argumenata; uvek vraća Promise
+      });
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // JEDINICA 2 · Alat: transdjuseri
+      //   mehanizam i razlog:  k2_resenje.ipynb → "Jedinica 2" → "Zašto ovaj mehanizam"
+      //   FP naspram OOP:      k2_resenje.ipynb → "Jedinica 2" → "Funkcionalna paradigma prema OOP"
+      // ═══════════════════════════════════════════════════════════════════════
+
+      const collect = (acc, e) => [...acc, e];                            // krajnji redjuser — rezultat je niz
+      const map     = f => next => (acc, e) => next(acc, f(e));           // transdjuser — preslikavanje
+      const filter  = p => next => (acc, e) => p(e) ? next(acc, e) : acc; // transdjuser — izdvajanje
+      const compose = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // JEDINICA 3 · Pomoćne funkcije: izravnavanje i sekvencijalno izvršavanje
+      //   mehanizam i razlog:  k2_resenje.ipynb → "Jedinica 3" → "Zašto ovaj mehanizam"
+      //   FP naspram OOP:      k2_resenje.ipynb → "Jedinica 3" → "Funkcionalna paradigma prema OOP"
+      // ═══════════════════════════════════════════════════════════════════════
+
+      const jeIterabilan = x => x != null && typeof x[Symbol.iterator] === "function";
+
+      const izravnaj = zadaci => zadaci.flatMap(z => jeIterabilan(z) ? [...z] : [z]);
+
+      // zadaci se izvršavaju REDOM: svaki sledeći dobija rezultat prethodnog.
+      // Akumulator preklapanja je Promise koji nosi ULAZ sledećeg koraka (uvek niz argumenata).
+      const izvrsiRedom = (zadaci, argumenti) =>
+          [...zadaci]
+              .reduce((tok, zadatak) => tok
+                          .then(ulaz => zadatak.execute(...ulaz))     // sledeći korak čeka prethodni
+                          .then(rezultat => [rezultat]),              // rezultat prethodnog je jedini ulaz sledećeg
+                      Promise.resolve(argumenti))                     // prvi zadatak dobija SVE argumente
+              .then(([poslednji]) => poslednji);                      // vrednost poslednjeg zadatka
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // JEDINICA 4 · Workflow
+      //   mehanizam i razlog:  k2_resenje.ipynb → "Jedinica 4" → "Zašto ovaj mehanizam"
+      //   FP naspram OOP:      k2_resenje.ipynb → "Jedinica 4" → "Funkcionalna paradigma prema OOP"
+      // ═══════════════════════════════════════════════════════════════════════
+
+      const Workflow = (naziv, autor, zadaci = []) => {
+          const z = Object.freeze([...zadaci]);                                  // privatna, zamrznuta kopija spiska
+
+          return Object.freeze({
+              naziv, autor,
+
+              get zadaci() { return [...z]; },                                   // izvedeni atribut — kopija ka spolja
+
+              *[Symbol.iterator]() { yield* z; },                                // iterabilnost: for...of daje Task objekte
+
+              map:     f => Workflow(naziv, autor, z.map(f)),                    // sve četiri vraćaju NOV Workflow
+              filter:  p => Workflow(naziv, autor, z.filter(p)),
+              flat:    () => Workflow(naziv, autor, izravnaj(z)),
+              flatMap: f => Workflow(naziv, autor, izravnaj(z.map(f))),
+
+              // proizvoljna kompozicija transdjusera nad spiskom zadataka
+              transduce: (xform, krajnji = collect, pocetna = []) => z.reduce(xform(krajnji), pocetna),
+              primeni: (...transdjuseri) => Workflow(naziv, autor, z.reduce(compose(...transdjuseri)(collect), [])),
+
+              execute: (...argumenti) => izvrsiRedom(z, argumenti)                // rezultat poslednjeg zadatka
+          });
+      };
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // JEDINICA 5 · Transdjuser za ispis svakog koraka
+      //   mehanizam i razlog:  k2_resenje.ipynb → "Jedinica 5" → "Zašto ovaj mehanizam"
+      //   FP naspram OOP:      k2_resenje.ipynb → "Jedinica 5" → "Funkcionalna paradigma prema OOP"
+      // ═══════════════════════════════════════════════════════════════════════
+
+      // transdjuser: svaki Task zamenjuje NOVIM Task-om koji oko izvršavanja dopisuje ispis
+      const saIspisom = map(zadatak => Task(zadatak.naziv, async (...argumenti) => {
+          console.log(`  → ${zadatak.naziv} ulaz:`, argumenti);
+          const rezultat = await zadatak.execute(...argumenti);
+          console.log(`  ← ${zadatak.naziv} izlaz:`, rezultat);
+          return rezultat;
+      }));
+
+      const merenje = map(zadatak => Task(zadatak.naziv, async (...argumenti) => {
+          const pocetak = Date.now();
+          const rezultat = await zadatak.execute(...argumenti);
+          console.log(`  ⏱ ${zadatak.naziv}: ${Date.now() - pocetak} ms`);
+          return rezultat;
+      }));
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // JEDINICA 6 · Demonstracija
+      //   mehanizam i razlog:  k2_resenje.ipynb → "Jedinica 6" → "Zašto ovaj mehanizam"
+      //   FP naspram OOP:      k2_resenje.ipynb → "Jedinica 6" → "Funkcionalna paradigma prema OOP"
+      // ═══════════════════════════════════════════════════════════════════════
+
+      const demo = async () => {
+          console.log("═══ 1. Task ═══");
+          const parsiraj   = Task("parsiraj",   tekst => tekst.split(",").map(Number));
+          const bezNula    = Task("bezNula",    niz => niz.filter(x => x !== 0));
+          const kvadrati   = Task("kvadrati",   niz => niz.map(x => x * x));
+          const zbir       = Task("zbir",       niz => niz.reduce((s, x) => s + x, 0));
+          const formatiraj = Task("formatiraj", x => `ukupno: ${x}`);
+          const cekaj      = Task("cekaj",      async x => { await new Promise(k => setTimeout(k, 30)); return x; });
+
+          console.log("execute sa dva argumenta:", await Task("spoji", (a, b) => `${a}-${b}`).execute("A", "B"));
+
+          console.log("═══ 2. Workflow i iterabilnost ═══");
+          const priprema = Workflow("priprema", "Blagoje", [parsiraj, bezNula]);
+          const racun    = Workflow("racun",    "Blagoje", [kvadrati, cekaj, zbir]);
+          const glavni   = Workflow("glavni",   "Blagoje", [priprema, racun, formatiraj]);
+
+          for (const z of glavni) console.log("  član:", z.naziv);
+          console.log("spisak:", glavni.zadaci.length, "| iterisanjem:", [...glavni].length);
+
+          console.log("═══ 3. flat, flatMap, map, filter ═══");
+          const ravan = glavni.flat();
+          console.log("posle flat:", [...ravan].map(z => z.naziv));
+          console.log("filter:", [...ravan.filter(z => z.naziv !== "cekaj")].map(z => z.naziv));
+          console.log("map:", [...ravan.map(z => Task(z.naziv.toUpperCase(), z.definicija))].map(z => z.naziv));
+          console.log("flatMap:", [...ravan.flatMap(z => Workflow("par", "Blagoje", [z, Task("kroz", x => x)]))].map(z => z.naziv));
+
+          console.log("═══ 4. execute ═══");
+          console.log("ugnježđen (flat pa execute):", await ravan.execute("1,0,2,3"));
+          console.log("bez sporog koraka:", await ravan.filter(z => z.naziv !== "cekaj").execute("4,0,5"));
+          console.log("prvi zadatak dobija sve argumente:",
+                      await Workflow("dva ulaza", "Blagoje", [Task("saberi", (a, b) => a + b), Task("puta10", x => x * 10)]).execute(2, 3));
+
+          console.log("═══ 5. transdjuseri ═══");
+          console.log("transduce -> nazivi:", ravan.transduce(map(z => z.naziv)));
+          console.log("transduce -> broj zadataka:", ravan.transduce(map(() => 1), (s, x) => s + x, 0));
+          console.log("primeni(saIspisom) — ispis svakog koraka:");
+          console.log("rezultat:", await ravan.primeni(saIspisom).execute("1,0,2,3"));
+          console.log("primeni(merenje) — trajanje svakog koraka:");
+          console.log("rezultat:", await ravan.primeni(merenje).execute("1,0,2,3"));
+
+          console.log("═══ 6. imutabilnost ═══");
+          console.log("original netaknut:", [...glavni].map(z => z.naziv), "| rezultat i dalje:", await ravan.execute("1,0,2,3"));
+      };
+
+      demo().catch(greska => console.error("demonstracija pala:", greska));
+    </script>
+  </body>
+</html>

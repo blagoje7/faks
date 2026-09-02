@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const collect = (acc, e) => [...acc, e]; // krajnji redjuser — niz
+      const sum = (acc, e) => acc + e; // krajnji redjuser — zbir
+      const map = (f) => (next) => (acc, e) => next(acc, f(e)); // transdjuser
+      const filter = (p) => (next) => (acc, e) => (p(e) ? next(acc, e) : acc); // transdjuser
+      const compose =
+        (...fs) =>
+        (x) =>
+          fs.reduceRight((acc, f) => f(acc), x); // spajanje transdjusera
+
+      const uzmi = (n, iterator) => {
+        // čitanje beskonačnog toka
+        const r = [];
+        for (const x of iterator) {
+          if (r.length >= n) break;
+          r.push(x);
+        }
+        return r;
+      };
+    </script>
+  </body>
+</html>

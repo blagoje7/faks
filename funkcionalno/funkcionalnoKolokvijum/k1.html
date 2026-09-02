@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        function Transakcija(redniBroj, brojRacuna, opisTransakcije, statusTransakcije, datum, tip, iznos) {
+            const brojac = 0;
+            this.brojRacuna = brojRacuna;
+            this.opisTransakcije = opisTransakcije;
+            this. statusTransakcije = statusTransakcije;
+            this.datum = datum;
+            this.tip = tip;
+            this.iznos = iznos;
+
+
+        }
+
+        function GlavnaKljiga(naziv, maticniBroj, pib, transakcije = [], istorija = {}) {
+            this.naziv = naziv;
+            this.maticniBroj = maticniBroj;
+            this.pib = pib;
+
+            const ist = { ...this };
+
+            const t = [...transakcije];
+
+            this.dodajTransakciju = transakcija =>  new GlavnaKljiga(this.naziv, this.maticniBroj, this.pib, [...t, transakcija], { ...ist });
+
+            this.obrisiTransakciju = id => new GlavnaKnjiga(this.naziv, this.maticniBroj, this.pib, t.filter(x => x.id !== id), {...this.istorija})
+
+            Object.defineProperty(this, 'stanje', {
+                get: () => t.filter((x) => x.statusTransakcije === 'realizovana').reduce((x, s) => x.tip === 'u korist' ? s + x.iznos : x.tip === 'na teret' ? s - x.iznos : 0, 0)
+            });
+
+
+        }
+
+        const pretraga = (knjiga, ...kriterijumi) => {
+            const krit = [...kriterijumi];
+
+            for ( let i = 0; i < krit.length; i++ ){
+                if( i === krit.length ){
+                    knjiga.transakcije.filter(krit[i]);
+                }
+            }
+        }
+
+    </script>
+</body>
+</html>
