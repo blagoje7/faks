@@ -88,7 +88,7 @@ A ovaj proizvod stoji samo na narudžbini koja je **isporučena**, i on se briš
 
 *(otvoriti tu isporučenu narudžbinu)*
 
-Ali pogledajte šta se desilo sa istorijom. Stavka je i dalje tu, sa istim nazivom, istom količinom i istim iznosom — samo nosi oznaku da taj proizvod više nije u šifarniku. Presenter je pre brisanja prekinuo vezu, a stavka pamti naziv i cenu iz trenutka poručivanja. Isporučena narudžbina se ne menja time što je neko izbacio artikal iz ponude.
+Ali pogledajte šta se desilo sa istorijom. Stavka je i dalje tu, sa istim nazivom, istom količinom i istim iznosom — samo nosi oznaku da taj proizvod više nije u šifarniku. `obrisi_proizvod` iz `backend/presenters/proizvod_presenter.py` je pre brisanja prekinuo vezu, a stavka pamti naziv i cenu iz trenutka poručivanja. Isporučena narudžbina se ne menja time što je neko izbacio artikal iz ponude.
 
 ---
 
@@ -129,7 +129,7 @@ Naziv *Representational State Transfer* Fielding objašnjava kao sliku mreže st
 
 ### 2. Kako izgleda tok jednog zahteva od klika do baze?
 
-Vue komponenta uhvati događaj i pozove funkciju u `api.js`. `api.js` je jedini kanal — pretvara poziv u HTTP zahtev, recimo `POST /api/stavke` sa JSON telom. Flask po registrovanoj ruti prosledi zahtev funkciji u odgovarajućem blueprintu, a to je Presenter. Presenter proveri ulaz; ako nije ispravan, vraća `400` i modelu ne pristupa. Ako jeste, radi nad modelom, SQLAlchemy sesija prevede to u SQL i pošalje MySQL-u. Nazad ide `201` sa JSON-om nove stavke, a komponenta prikaže novo stanje.
+Vue komponenta uhvati događaj i pozove funkciju u `api.js`. `api.js` je jedini kanal — pretvara poziv u HTTP zahtev, recimo `POST /api/stavke` sa JSON telom. Flask po registrovanoj ruti prosledi zahtev funkciji u odgovarajućem blueprintu, a to je Presenter. Presenter proveri ulaz — kod stavke je to `procitaj_podatke` iz `backend/presenters/stavka_presenter.py`; ako nije ispravan, vraća `400` i modelu ne pristupa. Ako jeste, radi nad modelom, SQLAlchemy sesija prevede to u SQL i pošalje MySQL-u. Nazad ide `201` sa JSON-om nove stavke, a komponenta prikaže novo stanje.
 
 ### 3. Kako radi rutiranje kad server ne zna za adresu `/narudzbine/3`?
 
@@ -184,7 +184,7 @@ Na prezentaciji se ne javlja, jer Flask servira i API i klijent sa istog porekla
 
 ### 10. Kada Vue komponenta traži podatke i šta se dešava dok čeka?
 
-U `onMounted`, dakle pošto je komponenta ugrađena u DOM. Zahtev je asinhron, pa komponenta u međuvremenu prikazuje stanje učitavanja; kada odgovor stigne, reaktivne promenljive se popune i Vue sam ponovo iscrta samo ono što se promenilo.
+U `onMounted`, dakle pošto je komponenta ugrađena u DOM — na primer u `frontend/src/components/Pocetna.vue`. Zahtev je asinhron, pa komponenta u međuvremenu prikazuje stanje učitavanja; kada odgovor stigne, reaktivne promenljive se popune i Vue sam ponovo iscrta samo ono što se promenilo.
 
 Ako zahtev padne, greška se hvata i prikazuje kao poruka. Komponenta ne pretpostavlja da će podaci stići.
 
@@ -225,7 +225,7 @@ Zato Presenter iz tela zahteva uzima samo `narudzbina_id`, `proizvod_id` i `koli
 
 Iz tri razloga. Prvi je sadržaj poruke — u komponenti mogu da napišem koja se narudžbina briše i koliko stavki odlazi sa njom, dok `confirm()` prikazuje golu rečenicu bez konteksta. Drugi je izgled — ugrađeni dijalog izgleda različito u svakom pretraživaču i ne može se stilizovati. Treći je što `confirm()` blokira izvršavanje cele stranice dok stoji otvoren.
 
-Uz to, komponenta se ponovo koristi za sva tri entiteta i prima samo tekst i dva događaja, `potvrdi` i `otkazi` — pa ni ona ne zna šta se briše.
+Uz to, `frontend/src/components/PotvrdaBrisanja.vue` se ponovo koristi za sva tri entiteta i prima samo tekst i dva događaja, `potvrdi` i `otkazi` — pa ni ona ne zna šta se briše.
 
 ---
 ---
@@ -252,7 +252,7 @@ Da je ovo MVVM u punom smislu, ViewModel bi držao stanje domena i pravila. Ovde
 
 Vredi razdvojiti dve vrste pravila. **Pravila validacije ulaza** — da li je poslato ono što treba — po prirodi pripadaju sloju koji prima zahtev, jer se tiču zahteva, a ne entiteta. Pravilo „datum ne sme biti u budućnosti" ne opisuje narudžbinu, nego šta smemo primiti.
 
-**Pravila koja opisuju sam entitet jesu u modelu.** `Narudzbina.ukupan_iznos` i `broj_stavki` su izvedena polja modela, a ne Presentera. `Stavka.iznos` isto. Kaskadno brisanje je u relaciji modela i u šemi. Jedinstvenost proizvoda po narudžbini je ograničenje u bazi. Ništa od toga Presenter ne računa.
+**Pravila koja opisuju sam entitet jesu u modelu.** `Narudzbina.ukupan_iznos` i `broj_stavki` u `backend/models.py` su izvedena polja modela, a ne Presentera. `Stavka.iznos` u istom fajlu isto. Kaskadno brisanje je u relaciji modela i u šemi. Jedinstvenost proizvoda po narudžbini je ograničenje u bazi. Ništa od toga Presenter ne računa.
 
 Gde bih se složio: da domen dalje raste — da se pojave popusti, rezervacija zaliha, prelazi između statusa — ta pravila ne bi smela u Presenter, nego u metode modela ili u zaseban sloj domena. Za ovaj obim bi takav sloj bio prazna ljuštura, i to je kompromis koji sam napravio svesno.
 

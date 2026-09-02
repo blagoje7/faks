@@ -51,7 +51,7 @@ Sada mehanizam, korak po korak.
 
 *(otvoriti `http://localhost:8000`)*
 
-Kada se strana učita, `view.js` pozove `ucitajSve`. To su dva zahteva kroz `api.js` — `GET /api/narudzbine` i `GET /api/proizvodi`. `granica.py` svaki od njih poklopi sa tabelom ruta i pozove odgovarajuću funkciju Presentera. Presenter traži podatke od modela, model izvrši SQL, i nazad ide JSON. View ga samo iscrta u dve tabele.
+Kada se strana učita, poziva se `ucitajSve` iz `view/view.js`. To su dva zahteva kroz `api.js` — `GET /api/narudzbine` i `GET /api/proizvodi`. `granica.py` svaki od njih poklopi sa tabelom ruta i pozove odgovarajuću funkciju Presentera. Presenter traži podatke od modela, model izvrši SQL, i nazad ide JSON. View ga samo iscrta u dve tabele.
 
 *(kliknuti „Stavke" na prvoj narudžbini)*
 
@@ -63,7 +63,7 @@ Obratite pažnju na kolonu „Cena po komadu": ovde piše osamdeset četiri deve
 
 Slanje forme šalje `POST /api/stavke` sa tri vrednosti: `narudzbina_id`, `proizvod_id` i `kolicina`. Cenu **ne** šaljem. Presenter prvo proverava ulaz — da narudžbina postoji, da proizvod postoji, da je količina bar jedan, i da taj proizvod već ne stoji na toj narudžbini. Tek ako sve prođe, čita cenu iz šifarnika i upisuje stavku. Vraća `201` i JSON nove stavke.
 
-Klijent nakon toga **ne računa novi zbir sam** — traži novo stanje narudžbine od Presentera i prikaže ono što dobije. To je suština pasivnog View-a.
+Klijent nakon toga **ne računa novi zbir sam** — `osveziIzabranu` iz `view/view.js` traži novo stanje narudžbine od Presentera i prikaže ono što dobije. To je suština pasivnog View-a.
 
 *(obrisati sadržaj polja količina i pokušati ponovo)*
 
@@ -92,7 +92,7 @@ Ista arhitektura, u punom obimu i sa MySQL-om i Vue-om, je moj K2.
 
 ### 1. Kako izgleda tok jednog ažuriranja kroz slojeve?
 
-Šest koraka. View prijavi korisnički događaj i pozove funkciju u `api.js`. `api.js` to prevede u HTTP zahtev — kod dodavanja stavke `POST /api/stavke` sa JSON telom. `granica.py` poklopi putanju i metodu sa tabelom ruta i pozove funkciju Presentera, prosleđujući raspakovano telo. Presenter proveri ulaz, pa radi nad modelom. Model izvrši SQL i vrati rezultat. Presenter vrati rečnik i statusni kod, granica ih pretvori u JSON odgovor, a View prikaže ono što je dobio.
+Šest koraka. View prijavi korisnički događaj i pozove funkciju u `api.js`. `api.js` to prevede u HTTP zahtev — kod dodavanja stavke `POST /api/stavke` sa JSON telom. `granica.py` poklopi putanju i metodu sa tabelom ruta i pozove funkciju Presentera, prosleđujući raspakovano telo. Presenter proveri ulaz, pa radi nad modelom — kod dodavanja stavke to je `dodaj_stavku` iz `presenter.py`, koja zove `upisi_stavku` iz `model.py`. Model izvrši SQL i vrati rezultat. Presenter vrati rečnik i statusni kod, granica ih pretvori u JSON odgovor, a View prikaže ono što je dobio.
 
 Ključno je da nijedan korak ne može da se preskoči: View nema drugi kanal osim `api.js`, a `api.js` nema drugu adresu osim `/api/...`, koja vodi u Presenter.
 
@@ -118,7 +118,7 @@ To su referencijalne akcije koje baza izvršava kada se briše red na koji stran
 
 ### 5. Kako se čuva istorijska cena i zašto tako?
 
-Cena se kopira u stavku u trenutku unosa. `stavka.cena_po_komadu` se prepisuje iz šifarnika kada se stavka kreira ili kada joj se promeni proizvod; izmena same količine je ne dira.
+Cena se kopira u stavku u trenutku unosa, u `dodaj_stavku` iz `presenter.py`. `stavka.cena_po_komadu` se prepisuje iz šifarnika kada se stavka kreira ili kada joj se promeni proizvod; izmena same količine je ne dira.
 
 To su dva različita podatka: tekuća cena u šifarniku i cena po kojoj je kupac tada poručio. Bez te kopije, izmena cenovnika bi promenila iznose svih ranijih narudžbina — a one su već zaključene.
 
@@ -130,13 +130,13 @@ View ne odlučuje šta je greška — on samo raspoređuje ono što je dobio: gr
 
 ### 7. Zašto se izvedeni podaci računaju umesto da se čuvaju?
 
-Zato što bi bili podatak koji se može razići sa svojim izvorom. `ukupan_iznos` se izvodi iz stavki pri svakom čitanju, pa je uvek tačan po definiciji. Da je upisan u tabelu, morao bi se ručno ažurirati pri svakom dodavanju, izmeni i brisanju stavke, a jedan propušteni slučaj daje narudžbinu čiji zbir ne odgovara njenim stavkama.
+Zato što bi bili podatak koji se može razići sa svojim izvorom. `ukupan_iznos` je `@property` na klasi `Narudzbina` u `model.py` i izvodi se iz stavki pri svakom čitanju, pa je uvek tačan po definiciji. Da je upisan u tabelu, morao bi se ručno ažurirati pri svakom dodavanju, izmeni i brisanju stavke, a jedan propušteni slučaj daje narudžbinu čiji zbir ne odgovara njenim stavkama.
 
 Cena stanovanja te odluke je jedno računanje po čitanju. To je jeftino; nekonzistentan podatak nije.
 
 ### 8. Kako biste testirali Presenter bez korisničkog interfejsa?
 
-Direktno — funkcije Presentera primaju obične Python rečnike i vraćaju rečnik i broj. Ne treba im ni pretraživač, ni HTTP server:
+Direktno — funkcije iz `presenter.py` primaju obične Python rečnike i vraćaju rečnik i broj. Ne treba im ni pretraživač, ni HTTP server:
 
 ```python
 import presenter
@@ -189,7 +189,7 @@ Korist se vidi na testiranju i na zameni: Presenter se poziva direktno iz Python
 
 ### 5. Zašto View koristi jedan osluškivač na tabeli umesto po jednog na svakom dugmetu?
 
-To je delegiranje događaja. Osluškivač stoji na `<tbody>`, a `dogadjaj.target.closest("tr")` utvrdi u koji je red kliknuto:
+To je delegiranje događaja. U `view/view.js` osluškivač stoji na `<tbody>`, a `dogadjaj.target.closest("tr")` utvrdi u koji je red kliknuto:
 
 ```javascript
 el("telo-narudzbina").addEventListener("click", (dogadjaj) => {
@@ -221,6 +221,6 @@ Ono što jeste sprovedeno je važnija granica: Presenter **ne zna kako izgleda p
 
 **Imena se poklapaju i to je tačno zapažanje.** Ali ono što View poznaje nije model — to je **ugovor koji Presenter objavljuje**. Imena su ista zato što ih Presenter nije preimenovao, a nije ih preimenovao zato što bi preimenovanje bez razloga bilo samo šum.
 
-Razlika se vidi na testu koji se može izvesti odmah: ako u bazi preimenujem kolonu `cena_po_komadu`, a u `u_recnik()` ostavim isti ključ, **View se ne menja**. Obrnuto važi isto — mogu da promenim ugovor, a da baza ostane ista. To znači da veza nije direktna, nego posredovana, i to je upravo ono što MVP traži.
+Razlika se vidi na testu koji se može izvesti odmah: ako u bazi preimenujem kolonu `cena_po_komadu`, a u `u_recnik()` iz `model.py` ostavim isti ključ, **View se ne menja**. Obrnuto važi isto — mogu da promenim ugovor, a da baza ostane ista. To znači da veza nije direktna, nego posredovana, i to je upravo ono što MVP traži.
 
 Pravi test „zna li View za model" nije poklapanje imena nego pristup: ne postoji način da `view.js` pročita red iz baze, izvrši upit, ili sazna nešto što mu Presenter nije vratio. Kad bih obrisao Presenter, imena bi ostala, ali podataka ne bi bilo.
