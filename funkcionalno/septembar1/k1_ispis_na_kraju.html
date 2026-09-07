@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="sr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kolokvijum I (Septembar 1) — Glavna knjiga, ispis</title>
+  </head>
+  <body>
+    <script>
+      // ═══════════════════════════════════════════════════════════════════════
+      // Funkcionalno programiranje — Kolokvijum I (Septembar 1)
+      // GlavnaKnjiga · Transakcija · pretraga · opoziv
+      //
+      // Po pravilima kolokvijuma: prazan <body>, bez CSS-a, sve u <script>.
+      // Rezultat se vidi u konzoli pregledača (F12 → Console).
+      //
+      // Raspored fajla:
+      //   DEO I  — IMPLEMENTACIJA  · samo definicije, nijedan ispis
+      //   DEO II — ISPIS REZULTATA · instanciranje i pozivi, sve na kraju
+      //
+      // Ova verzija ispisuje rezultate običnim console.log-om, red po red.
+      // (Verzija sa automatskim proverama: k1_provere_na_kraju.html)
+      // ═══════════════════════════════════════════════════════════════════════
+
+
+      // ═══════════════════════════════════════════════════════════════════════
+      //                        DEO I — IMPLEMENTACIJA
+      // ═══════════════════════════════════════════════════════════════════════
+
+      // ───────────────────────────────────────────────────────────────────────
+      // 1 · Transakcija — redni broj je privatni statički atribut
+      // ───────────────────────────────────────────────────────────────────────
+
+      const STATUSI = Object.freeze(["nerealizovana", "realizovana", "stornirana"]);
+      const TIPOVI  = Object.freeze(["na teret", "u korist"]);
+
+      // Zatvorenje (IIFE) drži brojač: vidi ga samo konstruktor, spolja ga nema.
+      const Transakcija = (() => {
+          let sledeciRedniBroj = 1;
+
+          return (brojRacuna, opis, status, datum, tip, iznos) => {
+              if (!STATUSI.includes(status)) throw new Error(`Nedozvoljen status: ${status}`);
+              if (!TIPOVI.includes(tip))     throw new Error(`Nedozvoljen tip: ${tip}`);
+
+              return Object.freeze({
+                  redniBroj: sledeciRedniBroj++,   // uvećava se za jedan pri svakom instanciranju
+                  brojRacuna,                      // broj računa
+                  opis,                            // opis transakcije
+                  status,                          // status transakcije
+                  datum,
+                  tip,
+                  iznos
+              });
+          };
+      })();
+
+      // ───────────────────────────────────────────────────────────────────────
+      // 2 · Čiste funkcije nad nizom transakcija — nijedna ne menja svoj ulaz
+      // ───────────────────────────────────────────────────────────────────────
+
+      const sa  = (niz, transakcija) => [...niz, transakcija];                       // dodavanje — nov niz
+      const bez = (niz, redniBroj)   => niz.filter(x => x.redniBroj !== redniBroj);  // uklanjanje — nov niz
+
+      const stornirana = t => Object.freeze({ ...t, status: "stornirana" });         // kopija, original netaknut
+
+      // izvedeno stanje: razlika suma REALIZOVANIH — u korist minus na teret, u jednom prolazu
+      const stanjeOd = niz => niz.reduce((s, x) =>
+          x.status !== "realizovana" ? s :
+          x.tip    === "u korist"    ? s + x.iznos
+                                     : s - x.iznos, 0);
+
+      // ───────────────────────────────────────────────────────────────────────
+      // 3 · GlavnaKnjiga — nepromenljiva, sa referencom na prethodnu verziju
+      // ───────────────────────────────────────────────────────────────────────
+
+      const GlavnaKnjiga = (naziv, maticniBroj, pib, transakcije = [], prethodna = null) => {
+          const t = Object.freeze([...transakcije]);   // privatna zamrznuta kopija
+
+          const knjiga = Object.freeze(Object.defineProperties({
+              naziv, maticniBroj, pib,
+              prethodna,          // istorija izmena: veza sa knjigom od koje je ova nastala
+
+              dodajTransakciju:  tr        => GlavnaKnjiga(naziv, maticniBroj, pib, sa(t, tr),         knjiga),
+              ukloniTransakciju: redniBroj => GlavnaKnjiga(naziv, maticniBroj, pib, bez(t, redniBroj), knjiga)
+          }, {
+              transakcije: { get: () => [...t],      enumerable: true },   // uvek kopija ka spolja
+              stanje:      { get: () => stanjeOd(t), enumerable: true }    // izvedeni atribut
+          }));
+
+          return knjiga;
+      };
+
+      // ───────────────────────────────────────────────────────────────────────
+      // 4 · istorija — lanac verzija razvijen u niz, od najstarije (indeks 0)
+      // ───────────────────────────────────────────────────────────────────────
+
+      const istorija = knjiga => knjiga === null ? [] : [...istorija(knjiga.prethodna), knjiga];
+
+      // ───────────────────────────────────────────────────────────────────────
+      // 5 · pretraga — kriterijumi se primenjuju redom kojim su navedeni
+      // ───────────────────────────────────────────────────────────────────────
+
+      const pretraga = (kriterijumi, knjiga) =>
+          kriterijumi.reduce((niz, kriterijum) => niz.filter(kriterijum), knjiga.transakcije);
+
+      const realizovane   = t => t.status === "realizovana";
+      const nerealizovane = t => t.status === "nerealizovana";
+      const stornirane    = t => t.status === "stornirana";
+      const uKorist       = t => t.tip === "u korist";
+      const naTeret       = t => t.tip === "na teret";
+      const preko         = granica => t => t.iznos > granica;               // parametrizovan kriterijum
+      const uMesecu       = mesec   => t => t.datum.slice(0, 7) === mesec;
+      const saRacuna      = broj    => t => t.brojRacuna === broj;
+
+      // ───────────────────────────────────────────────────────────────────────
+      // 6 · opoziv — povratak na verziju iz istorije; kasnije transakcije stornirane
+      // ───────────────────────────────────────────────────────────────────────
+
+      const opoziv = (knjiga, redniBrojUIstoriji) => {
+          const verzije = istorija(knjiga);
+          const stara   = verzije[redniBrojUIstoriji];
+          if (!stara) throw new Error(`Ne postoji verzija sa indeksom ${redniBrojUIstoriji}`);
+
+          const bileRanije = new Set(stara.transakcije.map(x => x.redniBroj));
+
+          const nastaleKasnije = verzije
+              .slice(redniBrojUIstoriji + 1)
+              .flatMap(k => k.transakcije)
+              .filter(x => !bileRanije.has(x.redniBroj))
+              .filter((x, i, niz) => niz.findIndex(y => y.redniBroj === x.redniBroj) === i)   // bez ponavljanja
+              .map(stornirana);                                                               // kopije
+
+          return GlavnaKnjiga(knjiga.naziv, knjiga.maticniBroj, knjiga.pib,
+                              [...stara.transakcije, ...nastaleKasnije], knjiga);
+      };
+
+
+      // ═══════════════════════════════════════════════════════════════════════
+      //                        DEO II — ISPIS REZULTATA
+      // ═══════════════════════════════════════════════════════════════════════
+
+      // ── podaci ────────────────────────────────────────────────────────────
+
+      const t1 = Transakcija("265-0001", "Uplata kupca",   "realizovana",   "2026-08-01", "u korist", 120000);
+      const t2 = Transakcija("265-0001", "Zakup prostora", "realizovana",   "2026-08-03", "na teret",  45000);
+      const t3 = Transakcija("265-0001", "Struja",         "realizovana",   "2026-08-06", "na teret",  18000);
+      const t4 = Transakcija("265-0002", "Nabavka robe",   "nerealizovana", "2026-09-01", "na teret",  90000);
+
+
+      console.log("═════════ 1 · TRANSAKCIJA ═════════");
+
+      console.log("t1:", t1);
+      console.log("t2:", t2);
+      console.log("t3:", t3);
+      console.log("t4:", t4);
+
+      console.log("\n--- redni broj se sam uvećava, jer je privatni statički ---");
+      console.log("t1.redniBroj:", t1.redniBroj);
+      console.log("t2.redniBroj:", t2.redniBroj);
+      console.log("t3.redniBroj:", t3.redniBroj);
+      console.log("t4.redniBroj:", t4.redniBroj);
+      console.log("brojac spolja (sledeciRedniBroj):", typeof sledeciRedniBroj, "— nedostupan je");
+
+      console.log("\n--- ostali podaci jedne transakcije ---");
+      console.log("t1.brojRacuna:", t1.brojRacuna);
+      console.log("t1.opis:      ", t1.opis);
+      console.log("t1.status:    ", t1.status);
+      console.log("t1.datum:     ", t1.datum);
+      console.log("t1.tip:       ", t1.tip);
+      console.log("t1.iznos:     ", t1.iznos);
+
+      console.log("\n--- transakcija je zamrznuta ---");
+      console.log("t1.iznos pre pokusaja izmene: ", t1.iznos);
+      try { t1.iznos = 999999; } catch (g) { console.log("izmena odbijena:", g.message); }
+      console.log("t1.iznos posle pokusaja izmene:", t1.iznos);
+      console.log("Object.isFrozen(t1):", Object.isFrozen(t1));
+
+      console.log("\n--- nedozvoljene vrednosti se odbijaju ---");
+      try { Transakcija("265-0001", "Greska", "izmisljen", "2026-08-04", "u korist", 1); }
+      catch (g) { console.log("status 'izmisljen' →", g.message); }
+      try { Transakcija("265-0001", "Greska", "realizovana", "2026-08-04", "u dobit", 1); }
+      catch (g) { console.log("tip 'u dobit'      →", g.message); }
+
+
+      console.log("\n\n═════════ 2 · SLOBODNE FUNKCIJE NAD NIZOM ═════════");
+
+      const niz = [t1, t2, t3, t4];
+
+      console.log("polazni niz:");
+      console.table(niz);
+
+      console.log("\n--- sa(niz, transakcija) — dodavanje, vraca NOV niz ---");
+      const t5 = Transakcija("265-0001", "Kamata", "realizovana", "2026-09-05", "u korist", 4000);
+      console.log("sa(niz, t5):     ", sa(niz, t5).map(x => x.opis));
+      console.log("niz (original):  ", niz.map(x => x.opis));
+
+      console.log("\n--- bez(niz, redniBroj) — uklanjanje, vraca NOV niz ---");
+      console.log("bez(niz, 2):     ", bez(niz, t2.redniBroj).map(x => x.opis));
+      console.log("niz (original):  ", niz.map(x => x.opis));
+
+      console.log("\n--- stornirana(t) — kopija sa izmenjenim statusom ---");
+      console.log("stornirana(t3).status:   ", stornirana(t3).status);
+      console.log("t3.status (original):    ", t3.status);
+      console.log("stornirana(t3).redniBroj:", stornirana(t3).redniBroj, "— isti kao original:", t3.redniBroj);
+      console.log("da li je isti objekat:   ", stornirana(t3) === t3);
+
+      console.log("\n--- stanjeOd(niz) — razlika suma realizovanih ---");
+      console.log("stanjeOd(niz):", stanjeOd(niz), "= 120000 (u korist) − 45000 − 18000 (na teret)");
+      console.log("nerealizovana od 90000 se ne racuna");
+      console.log("stanjeOd([]): ", stanjeOd([]));
+
+
+      console.log("\n\n═════════ 3 · GLAVNA KNJIGA ═════════");
+
+      const k0 = GlavnaKnjiga("Merkur doo", "21456789", "108456789");   // verzija 0 — prazna
+      const k1 = k0.dodajTransakciju(t1);                               // verzija 1
+      const k2 = k1.dodajTransakciju(t2);                               // verzija 2
+      const k3 = k2.dodajTransakciju(t3);                               // verzija 3
+      const k4 = k3.dodajTransakciju(t4);                               // verzija 4 — tekuca
+
+      console.log("k4.naziv:      ", k4.naziv);
+      console.log("k4.maticniBroj:", k4.maticniBroj);
+      console.log("k4.pib:        ", k4.pib);
+      console.log("k4.stanje:     ", k4.stanje, "— izvedeni atribut, cita se bez zagrada");
+      console.log("k4.transakcije:");
+      console.table(k4.transakcije);
+
+      console.log("\n--- geter transakcije vraca KOPIJU ---");
+      console.log("duzina pre push-a: ", k4.transakcije.length);
+      k4.transakcije.push(t5);
+      console.log("duzina posle push-a:", k4.transakcije.length, "— knjiga se nije promenila");
+      console.log("Object.isFrozen(k4):", Object.isFrozen(k4));
+
+      console.log("\n--- druga knjiga, potpuno nezavisna ---");
+      const vega = ["Prodaja usluga|realizovana|u korist|2026-08-10|150000",
+                    "Plate|realizovana|na teret|2026-08-11|95000",
+                    "Reprezentacija|nerealizovana|na teret|2026-08-12|12000"]
+          .map(red => red.split("|"))
+          .reduce((k, [opis, status, tip, datum, iznos]) =>
+                      k.dodajTransakciju(Transakcija("170-9999", opis, status, datum, tip, Number(iznos))),
+                  GlavnaKnjiga("Vega ad", "20099887", "105566778"));
+
+      console.log("vega.naziv: ", vega.naziv, "| vega.stanje:", vega.stanje);
+      console.log("k4.naziv:   ", k4.naziv, "| k4.stanje:   ", k4.stanje);
+
+
+      console.log("\n\n═════════ 4 · METODE dodajTransakciju I ukloniTransakciju ═════════");
+
+      const dodata    = k4.dodajTransakciju(t5);
+      const uklonjena = k4.ukloniTransakciju(t2.redniBroj);
+
+      console.log("--- dodajTransakciju ---");
+      console.log("dodata.transakcije: ", dodata.transakcije.map(x => x.opis));
+      console.log("dodata.stanje:      ", dodata.stanje);
+
+      console.log("\n--- ukloniTransakciju ---");
+      console.log("uklonjena.transakcije:", uklonjena.transakcije.map(x => x.opis));
+      console.log("uklonjena.stanje:     ", uklonjena.stanje);
+
+      console.log("\n--- original nije promenjen ---");
+      console.log("k4.transakcije:", k4.transakcije.map(x => x.opis));
+      console.log("k4.stanje:     ", k4.stanje);
+      console.log("k4 === dodata: ", k4 === dodata, "| k4 === uklonjena:", k4 === uklonjena);
+      console.log("k4.transakcije[0] === dodata.transakcije[0]:", k4.transakcije[0] === dodata.transakcije[0],
+                  "— transakcije se DELE, ne kopiraju");
+
+
+      console.log("\n\n═════════ 5 · ISTORIJA ═════════");
+
+      console.log("k4.prethodna === k3:", k4.prethodna === k3);
+      console.log("k3.prethodna === k2:", k3.prethodna === k2);
+      console.log("k0.prethodna:       ", k0.prethodna, "— pocetak lanca");
+
+      console.log("\nistorija(k4).length:", istorija(k4).length, "verzija");
+      console.log("stanje po verzijama:", istorija(k4).map(k => k.stanje));
+
+      console.log("\nsadrzaj svake verzije:");
+      istorija(k4).forEach((k, i) => console.log("  verzija", i, ":", k.transakcije.map(x => x.opis)));
+
+      console.log("\nistorija(vega).length:", istorija(vega).length, "— nezavisna od prve knjige");
+
+
+      console.log("\n\n═════════ 6 · PRETRAGA ═════════");
+
+      console.log("--- jedan kriterijum ---");
+      console.log("realizovane:  ", pretraga([realizovane],   k4).map(x => x.opis));
+      console.log("nerealizovane:", pretraga([nerealizovane], k4).map(x => x.opis));
+      console.log("stornirane:   ", pretraga([stornirane],    k4).map(x => x.opis));
+      console.log("uKorist:      ", pretraga([uKorist],       k4).map(x => x.opis));
+      console.log("naTeret:      ", pretraga([naTeret],       k4).map(x => x.opis));
+
+      console.log("\n--- parametrizovani kriterijumi (funkcija vraca funkciju) ---");
+      console.log("preko(50000):        ", pretraga([preko(50000)],          k4).map(x => x.opis));
+      console.log("uMesecu('2026-08'):  ", pretraga([uMesecu("2026-08")],    k4).map(x => x.opis));
+      console.log("saRacuna('265-0002'):", pretraga([saRacuna("265-0002")],  k4).map(x => x.opis));
+
+      console.log("\n--- vise kriterijuma, primenjuju se redom ---");
+      console.log("[realizovane, naTeret]:        ", pretraga([realizovane, naTeret], k4).map(x => x.opis));
+      console.log("[naTeret, preko(20000)]:       ", pretraga([naTeret, preko(20000)], k4).map(x => x.opis));
+      console.log("[uMesecu('2026-08'), uKorist]: ", pretraga([uMesecu("2026-08"), uKorist], k4).map(x => x.opis));
+
+      console.log("\n--- prazan niz kriterijuma vraca sve ---");
+      console.log("pretraga([], k4):", pretraga([], k4).map(x => x.opis));
+
+      console.log("\n--- niz kriterijuma se moze sastaviti i u toku rada ---");
+      const popunjeno = { status: "realizovana", tip: "na teret", minIznos: 10000 };
+      const izPolja = [
+          ...(popunjeno.status   ? [t => t.status === popunjeno.status] : []),
+          ...(popunjeno.tip      ? [t => t.tip === popunjeno.tip]       : []),
+          ...(popunjeno.minIznos ? [preko(popunjeno.minIznos)]          : [])
+      ];
+      console.log("popunjena polja:", popunjeno);
+      console.log("rezultat:       ", pretraga(izPolja, k4).map(x => x.opis));
+
+
+      console.log("\n\n═════════ 7 · OPOZIV ═════════");
+
+      const opozvana = opoziv(k4, 2);         // vracamo se na verziju sa indeksom 2
+
+      console.log("verzija 2 je sadrzala:", istorija(k4)[2].transakcije.map(x => x.opis));
+      console.log("stanje verzije 2:     ", istorija(k4)[2].stanje);
+
+      console.log("\nopozvana knjiga:");
+      console.table(opozvana.transakcije);
+      console.log("opozvana.stanje:", opozvana.stanje, "— isto kao stanje verzije 2");
+
+      console.log("\n--- istorija se nastavlja, ne prekida ---");
+      console.log("opozvana.prethodna === k4:", opozvana.prethodna === k4);
+      console.log("istorija(opozvana).length:", istorija(opozvana).length, "verzija");
+
+      console.log("\n--- opoziv na indeks 0: sve postaje stornirano ---");
+      console.log(opoziv(k4, 0).transakcije.map(x => `${x.opis} (${x.status})`));
+      console.log("stanje:", opoziv(k4, 0).stanje);
+
+      console.log("\n--- nepostojeci indeks ---");
+      try { opoziv(k4, 99); } catch (g) { console.log("opoziv(k4, 99) →", g.message); }
+
+      console.log("\n--- nista nije promenjeno ---");
+      console.log("k4.transakcije:", k4.transakcije.map(x => `${x.opis} (${x.status})`));
+      console.log("k4.stanje:     ", k4.stanje);
+      console.log("t3.status:     ", t3.status, "| t4.status:", t4.status, "— originali netaknuti");
+      console.log("opozvana.transakcije[2] === t3:", opozvana.transakcije[2] === t3, "— to je KOPIJA");
+
+      console.log("\n--- pretraga nad opozvanom knjigom ---");
+      console.log("stornirane:", pretraga([stornirane], opozvana).map(x => x.opis));
+      console.log("stanjeOd nad podskupom (samo avgust):",
+                  stanjeOd(pretraga([uMesecu("2026-08")], opozvana)));
+    </script>
+  </body>
+</html>

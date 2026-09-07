@@ -1,0 +1,5 @@
+Pitanje 1: Kako mislis onaj ko ga izvodi ostaje nepromenjen ? Onaj koji ga poziva ?  
+Pitanje 2: Koja je onda razlika izmedju redjusera i reduce funkcije ? 
+Pitanje 3: const preslikaj = posao   => sledeci => (stanje, kutija) => sledeci(stanje, posao(kutija)); Koja je razlika izmedju (posao, sledeci) => (stanje, kutija) => sledeci(stanje, posao(kutija)); ili cak (posao, sledeci, stanje, kutija) => sledeci(stanje,posao(kutija));
+Pitanje 4: Koja bi bila veza izmedju .then i .subscribe unutar angulara?
+Pitanje 5: 

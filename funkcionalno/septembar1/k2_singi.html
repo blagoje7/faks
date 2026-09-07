@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kolokvijum II — Workflow i Task</title>
+  </head>
+  <body>
+    <p>
+      Napraviti konstruktore za objekte tipa Workflow i Task. Svaki Task opisan
+      je nazivom, definicijom i metodom execute. Definicija predstavlja funkciju
+      koja se izvršava pozivom funkcije execute. Rezultat poziva metode execute
+      nad Task objektom je rezultat poziva funkcije date u atributu definicija.
+      Metoda execute može primiti proizvoljan broj argumenata koji prosleđuje
+      funkciji definisanoj u atributu definicija. Workflow sadrži podatke naziv,
+      autor, spisak Task objekata i metodu execute. Workflow je iterabilni
+      objekat, iterisanjem kroz workflow dobijaju se pojedinačni Task objekti.
+      Za Workflow definisati operacije map, flat, flatMap i filter.
+      <br /><br />
+      Metoda execute izvršava sve zadate Task objekte tako što kao ulaz u
+      execute metodu Task objekta dostavlja rezultat prethodno izvršenog Task
+      objekta. Za ulaz u metodu za prvi task objekat uzimaju se svi prosleđeni
+      argumenti iz metode execute u Workflow objektu. Povratna vrednost metode
+      je rezultat izvršavanja poslednjeg Task objekta iz niza. Execute metode iz
+      Workflow i Task objekta se izvršavaju asinhrono.
+      <br /><br />
+      Modifikovati Workflow objekat tako da je nad njim moguće primeniti
+      proizvoljnu kompoziciju transdjusera. Demonstrirati ispravnost
+      implementacije definisanjem transdjusera za ispis svakog koraka
+      izvršavanja Workflow objekta.
+    </p>
+    <script>
+      // ── Task ───────────────────────────────────────────────────────────
+      // execute prima proizvoljan broj argumenata i prosledjuje ih definiciji.
+      // async cini da uvek vraca Promise, pa se sinhroni i spori zadaci mesaju.
+
+      const Task = function (naziv, definicija) {
+        this.naziv = naziv;
+        this.definicija = definicija;
+
+        this.execute = async function (...argumenti) {
+          return definicija(...argumenti);
+        };
+      };
+
+      // ── sekvenca ───────────────────────────────────────────────────────
+      // Spaja proizvoljan broj funkcija u jednu, sleva nadesno.
+
+      const sekvenca = function (...funkcije) {
+        return function (pocetno) {
+          let rezultat = pocetno;
+          for (const f of funkcije) {
+            rezultat = f(rezultat);
+          }
+          return rezultat;
+        };
+      };
+
+      // ── izravnavanje ───────────────────────────────────────────────────
+      // Workflow je iterabilan, pa se ugnjezden workflow raspakuje kao niz.
+
+      const izravnaj = function (zadaci) {
+        return zadaci.flatMap((z) =>
+          typeof z[Symbol.iterator] === "function" ? [...z] : [z],
+        );
+      };
+
+      // ── Workflow ───────────────────────────────────────────────────────
+      // Spisak zadataka je privatan (parametar konstruktora), geter vraca kopiju.
+
+      const Workflow = function (naziv, autor, zadaci = []) {
+        this.naziv = naziv;
+        this.autor = autor;
+
+        Object.defineProperty(this, "zadaci", {
+          get() {
+            return [...zadaci];
+          },
+          enumerable: true,
+        });
+
+        // iterisanjem se dobijaju pojedinacni Task objekti
+        this[Symbol.iterator] = function* () {
+          for (const zadatak of zadaci) {
+            yield zadatak;
+          }
+        };
+
+        this.map = function (f) {
+          return new Workflow(naziv, autor, zadaci.map(f));
+        };
+
+        this.filter = function (p) {
+          return new Workflow(naziv, autor, zadaci.filter(p));
+        };
+
+        this.flat = function () {
+          return new Workflow(naziv, autor, izravnaj(zadaci));
+        };
+
+        this.flatMap = function (f) {
+          return new Workflow(naziv, autor, izravnaj(zadaci.map(f)));
+        };
+
+        // Prvi zadatak dobija SVE argumente, svaki sledeci rezultat prethodnog,
+        // a vraca se rezultat poslednjeg. Svaki korak ceka prethodni.
+        this.execute = async function (...argumenti) {
+          let ulaz = argumenti;
+          for (const zadatak of zadaci) {
+            ulaz = [await zadatak.execute(...ulaz)];
+          }
+          return ulaz[0];
+        };
+
+        // proizvoljna kompozicija transdjusera nad spiskom zadataka
+        this.primeni = function (...transdjuseri) {
+          return new Workflow(naziv, autor, sekvenca(...transdjuseri)(zadaci));
+        };
+      };
+
+      // ── transdjuseri ───────────────────────────────────────────────────
+      // Transdjuser je funkcija koja prima spisak zadataka i vraca nov spisak.
+      // Posto su svi istog oblika, mogu se slagati funkcijom sekvenca.
+
+      // trazeni transdjuser: svaki zadatak zamenjuje NOVIM koji oko izvrsavanja
+      // dopisuje ispis ulaza i izlaza (dekorator iz vezbi, primenjen na svaki zadatak)
+      const saIspisom = function (zadaci) {
+        return zadaci.map(
+          (zadatak) =>
+            new Task(zadatak.naziv, async function (...argumenti) {
+              console.log("   ->", zadatak.naziv, "ulaz:", ...argumenti);
+              const rezultat = await zadatak.execute(...argumenti);
+              console.log("   <-", zadatak.naziv, "izlaz:", rezultat);
+              return rezultat;
+            }),
+        );
+      };
+
+      // isti obrazac, drugi posao — dokaz da mehanizam prima bilo koji transdjuser
+      const saMerenjem = function (zadaci) {
+        return zadaci.map(
+          (zadatak) =>
+            new Task(zadatak.naziv, async function (...argumenti) {
+              const pocetak = Date.now();
+              const rezultat = await zadatak.execute(...argumenti);
+              console.log("   *", zadatak.naziv + ":", Date.now() - pocetak, "ms");
+              return rezultat;
+            }),
+        );
+      };
+
+      // parametrizovan transdjuser
+      const bez = (naziv) => (zadaci) => zadaci.filter((z) => z.naziv !== naziv);
+
+      // ═══════════════════════════════════════════════════════════════════
+      // Testiranje
+      // ═══════════════════════════════════════════════════════════════════
+
+      const demo = async function () {
+        const parsiraj = new Task("parsiraj", (tekst) => tekst.split(",").map(Number));
+        const bezNula = new Task("bezNula", (niz) => niz.filter((x) => x !== 0));
+        const kvadrati = new Task("kvadrati", (niz) => niz.map((x) => x * x));
+        const zbir = new Task("zbir", (niz) => niz.reduce((a, x) => a + x, 0));
+        const formatiraj = new Task("formatiraj", (x) => "ukupno: " + x);
+        const cekaj = new Task("cekaj", async (x) => {
+          await new Promise((k) => setTimeout(k, 20));
+          return x;
+        });
+        const saberi = new Task("saberi", (a, b, c) => a + b + c);
+        const puta10 = new Task("puta10", (x) => x * 10);
+
+        console.log("=== Task ===");
+        console.log("naziv:", parsiraj.naziv, "| definicija:", typeof parsiraj.definicija);
+        console.log("execute sa jednim argumentom:", await parsiraj.execute("1,0,2,3"));
+        console.log("execute sa tri argumenta:    ", await saberi.execute(1, 2, 3));
+        console.log("rezultat je rezultat definicije:", await zbir.execute([1, 4, 9]));
+        console.log("execute je asinhron:", parsiraj.execute("1") instanceof Promise);
+        console.log("i definicija sme biti asinhrona:", await cekaj.execute(7));
+
+        console.log("=== Workflow ===");
+        const priprema = new Workflow("priprema", "Blagoje", [parsiraj, bezNula]);
+        const racun = new Workflow("racun", "Blagoje", [kvadrati, cekaj, zbir]);
+        const glavni = new Workflow("glavni", "Blagoje", [priprema, racun, formatiraj]);
+
+        console.log("naziv:", priprema.naziv, "| autor:", priprema.autor);
+        console.log("spisak zadataka:", priprema.zadaci.map((z) => z.naziv));
+
+        console.log("=== iterabilnost ===");
+        for (const zadatak of priprema) {
+          console.log("   clan:", zadatak.naziv, "| ima definiciju:", typeof zadatak.definicija);
+        }
+        console.log("spread:", [...priprema].map((z) => z.naziv));
+
+        console.log("=== map, filter, flat, flatMap ===");
+        const ravan = glavni.flat();
+        console.log("ugnjezden:  ", [...glavni].map((z) => z.naziv));
+        console.log("posle flat: ", [...ravan].map((z) => z.naziv));
+        console.log("filter:     ", [...ravan.filter((z) => z.naziv !== "cekaj")].map((z) => z.naziv));
+        console.log("map:        ", [...ravan.map((z) => new Task(z.naziv.toUpperCase(), z.definicija))].map((z) => z.naziv));
+        console.log("flatMap:    ", [...priprema.flatMap((z) => new Workflow("par", "Blagoje", [z, new Task("kroz", (x) => x)]))].map((z) => z.naziv));
+        console.log("original netaknut:", [...glavni].map((z) => z.naziv));
+
+        console.log("=== execute ===");
+        console.log("lancano, ulaz '1,0,2,3':", await ravan.execute("1,0,2,3"));
+        console.log("   [1,0,2,3] -> [1,2,3] -> [1,4,9] -> 14 -> tekst");
+        console.log("ugnjezden daje isto:    ", await glavni.execute("1,0,2,3"));
+        console.log("prvi zadatak dobija SVE argumente:", await new Workflow("tri ulaza", "Blagoje", [saberi, puta10]).execute(2, 3, 5), "= (2+3+5)*10");
+        console.log("vraca se rezultat POSLEDNJEG:", await new Workflow("dva koraka", "Blagoje", [parsiraj, zbir]).execute("1,2,3"));
+        console.log("execute je asinhron:", ravan.execute("1") instanceof Promise);
+
+        console.log("=== zadaci se izvrsavaju redom ===");
+        const trag = [];
+        const spor = new Task("spor", async (x) => {
+          await new Promise((k) => setTimeout(k, 30));
+          trag.push("spor");
+          return x;
+        });
+        const brz = new Task("brz", (x) => {
+          trag.push("brz");
+          return x;
+        });
+        await new Workflow("redosled", "Blagoje", [spor, brz]).execute(1);
+        console.log("redosled tragova:", trag, "— brz je cekao spor");
+
+        console.log("=== transdjuseri ===");
+        console.log("primeni(saIspisom) — ispis svakog koraka:");
+        console.log("rezultat:", await ravan.primeni(saIspisom).execute("1,0,2,3"));
+
+        console.log("proizvoljna kompozicija: bez('cekaj') pa saIspisom");
+        console.log("rezultat:", await ravan.primeni(bez("cekaj"), saIspisom).execute("4,0,5"));
+
+        console.log("drugi transdjuser, isti mehanizam:");
+        console.log("rezultat:", await ravan.primeni(saMerenjem).execute("1,0,2,3"));
+
+        console.log("original netaknut:", [...ravan].map((z) => z.naziv));
+        console.log("i dalje daje isto:", await ravan.execute("1,0,2,3"));
+      };
+
+      demo();
+    </script>
+  </body>
+</html>

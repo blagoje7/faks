@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kolokvijum I — Glavna knjiga</title>
+  </head>
+  <body>
+    <p>
+      Napraviti konstruktor tipa GlavnaKnjiga koji u sebi sadrži podatke naziv
+      preduzeća, matični broj, pib i transakcije. Atribut transakcije je niz
+      Transakcija objekata koji u sebi sadrže redni broj, broj računa, opis
+      transakcije, status transakcije, datum, tip i iznos. Redni broj
+      transakcije je privatni statički atribut čija vrednost se uvećava za jedan
+      prilikom instanciranja svake transakcije. Status transakcije je string
+      čije vrednosti mogu biti "nerealizovana", "realizovana" i "stornirana".
+      Tip transakcije je string čije vrednosti mogu biti "na teret" i "u
+      korist".
+      <br /><br />
+      Glavna knjiga sadrži metode dodajTransakciju i ukloniTransakciju. Ove
+      metode ne smeju da mutiraju originalni objekat nad kojim su primenjene.
+      Rezultat ovih metoda je nova instanca glavne knjige u koju je dodata ili
+      iz koje je uklonjena navedena transakcija. Novodobijena glavna knjiga
+      sadrži i celokupnu istoriju izmena u vidu reference na prethodnu glavnu
+      knjigu od koje je nastala. U glavnoj knjizi dodati izvedeni atribut stanje
+      koji predstavlja razliku suma realizovanih transakcija u korist i na
+      teret.
+      <br /><br />
+      Napraviti funkciju pretraga koja prima niz kriterijuma i glavnu knjigu, a
+      kao rezultat vraća niz filtriran na osnovu kriterijuma. Kriterijumi su
+      proizvoljno definisane predikatske funkcije. Primena kriterijuma pretrage
+      se vrši onim redom kojim su navedeni u argumentima funkcije pretraga.
+      <br /><br />
+      Definisati funkciju opoziv, ova funkcija kao argumente prima glavnu knjigu
+      i redni broj glavne knjige u istoriji. Rezultat funkcije je nova glavna
+      knjiga koja u sebi sadrži sve transakcije koje je sadržala glavna knjiga
+      na zadatom indeksu u istoriji, kao i sve transakcije koje su nastale nakon
+      te glavne knjige, uz izmenu da su sve transakcije nastale nakon te glavne
+      knjige statusa stornirano. Ova funkcija ne sme da menja nijednu od glavnih
+      knjiga niti neku od njihovih transakcija.
+    </p>
+    <script>
+      // ── Transakcija ────────────────────────────────────────────────────
+      // Brojac je u IIFE, pa postoji JEDAN za ceo tip i ne vidi se spolja.
+      // Tu su i spiskovi dozvoljenih vrednosti — posto su u zatvorenju,
+      // spolja im se ne moze pristupiti ni dopisati nova vrednost.
+      // Redni broj se cita preko getera, pa se ne moze prepisati spolja.
+
+      const Transakcija = (() => {
+        let brojac = 0;
+        const STATUSI = ["nerealizovana", "realizovana", "stornirana"];
+        const TIPOVI = ["na teret", "u korist"];
+
+        return function (brojRacuna, opis, status, datum, tip, iznos) {
+          // provera pre brojaca — neuspeo pokusaj ne trosi redni broj
+          if (!STATUSI.includes(status)) {
+            throw new Error("Nedozvoljen status: " + status);
+          }
+          if (!TIPOVI.includes(tip)) {
+            throw new Error("Nedozvoljen tip: " + tip);
+          }
+
+          brojac++;
+          const redniBroj = brojac;
+
+          this.brojRacuna = brojRacuna;
+          this.opis = opis;
+          this.status = status;
+          this.datum = datum;
+          this.tip = tip;
+          this.iznos = iznos;
+
+          Object.defineProperty(this, "redniBroj", {
+            get() {
+              return redniBroj;
+            },
+            enumerable: true,
+          });
+        };
+      })();
+
+      // ── GlavnaKnjiga ───────────────────────────────────────────────────
+      // Spisak transakcija je privatan (parametar konstruktora). Geter vraca
+      // kopiju, pa spoljni push ne moze da promeni knjigu.
+
+      const GlavnaKnjiga = function (
+        naziv,
+        maticniBroj,
+        pib,
+        transakcije = [],
+        prethodna = null,
+      ) {
+        this.naziv = naziv;
+        this.maticniBroj = maticniBroj;
+        this.pib = pib;
+        this.prethodna = prethodna;
+
+        Object.defineProperty(this, "transakcije", {
+          get() {
+            return [...transakcije];
+          },
+          enumerable: true,
+        });
+
+        // izvedeni atribut: razlika suma realizovanih u korist i na teret
+        Object.defineProperty(this, "stanje", {
+          get() {
+            return transakcije
+              .filter((t) => t.status === "realizovana")
+              .reduce(
+                (acc, t) => (t.tip === "u korist" ? acc + t.iznos : acc - t.iznos),
+                0,
+              );
+          },
+          enumerable: true,
+        });
+
+        // obe metode vracaju NOVU knjigu, a ovu prosledjuju kao prethodnu
+        this.dodajTransakciju = function (transakcija) {
+          return new GlavnaKnjiga(
+            naziv,
+            maticniBroj,
+            pib,
+            [...transakcije, transakcija],
+            this,
+          );
+        };
+
+        this.ukloniTransakciju = function (redniBroj) {
+          return new GlavnaKnjiga(
+            naziv,
+            maticniBroj,
+            pib,
+            transakcije.filter((t) => t.redniBroj !== redniBroj),
+            this,
+          );
+        };
+      };
+
+      // ── istorija ───────────────────────────────────────────────────────
+      // Lanac prethodnih knjiga razvijen u niz, od najstarije ka tekucoj.
+
+      const istorija = function (knjiga) {
+        return knjiga === null ? [] : [...istorija(knjiga.prethodna), knjiga];
+      };
+
+      // ── pretraga ───────────────────────────────────────────────────────
+      // reduce nad kriterijumima: izlaz jednog filtera je ulaz sledeceg,
+      // pa je redosled iz argumenata ujedno i redosled primene.
+
+      const pretraga = function (kriterijumi, knjiga) {
+        return kriterijumi.reduce(
+          (niz, kriterijum) => niz.filter(kriterijum),
+          knjiga.transakcije,
+        );
+      };
+
+      const realizovane = (t) => t.status === "realizovana";
+      const nerealizovane = (t) => t.status === "nerealizovana";
+      const stornirane = (t) => t.status === "stornirana";
+      const uKorist = (t) => t.tip === "u korist";
+      const naTeret = (t) => t.tip === "na teret";
+      const preko = (granica) => (t) => t.iznos > granica;
+      const saRacuna = (broj) => (t) => t.brojRacuna === broj;
+
+      // ── opoziv ─────────────────────────────────────────────────────────
+
+      // kopija transakcije sa izmenjenim statusom; original se ne dira
+      const stornirana = function (transakcija) {
+        return { ...transakcija, status: "stornirana" };
+      };
+
+      const opoziv = function (knjiga, redniBrojUIstoriji) {
+        const verzije = istorija(knjiga);
+        const stara = verzije[redniBrojUIstoriji];
+
+        const brojeviStare = stara.transakcije.map((t) => t.redniBroj);
+
+        const nastaleKasnije = verzije
+          .filter((v, i) => i > redniBrojUIstoriji) // samo kasnije verzije
+          .reduce((niz, v) => [...niz, ...v.transakcije], []) // sve njihove transakcije
+          .filter((t) => brojeviStare.indexOf(t.redniBroj) === -1) // one kojih nije bilo
+          .filter(
+            (t, i, niz) =>
+              niz.findIndex((x) => x.redniBroj === t.redniBroj) === i,
+          ) // bez ponavljanja
+          .map(stornirana); // kopije sa novim statusom
+
+        return new GlavnaKnjiga(
+          knjiga.naziv,
+          knjiga.maticniBroj,
+          knjiga.pib,
+          [...stara.transakcije, ...nastaleKasnije],
+          knjiga,
+        );
+      };
+
+      // ═══════════════════════════════════════════════════════════════════
+      // Testiranje
+      // ═══════════════════════════════════════════════════════════════════
+
+      const t1 = new Transakcija("265-0001", "Uplata kupca", "realizovana", "2026-08-01", "u korist", 120000);
+      const t2 = new Transakcija("265-0001", "Zakup prostora", "realizovana", "2026-08-03", "na teret", 45000);
+      const t3 = new Transakcija("265-0001", "Struja", "realizovana", "2026-08-06", "na teret", 18000);
+      const t4 = new Transakcija("265-0002", "Nabavka robe", "nerealizovana", "2026-09-01", "na teret", 90000);
+
+      console.log("=== transakcije ===");
+      console.log(t1);
+      console.log("redni brojevi:", [t1, t2, t3, t4].map((t) => t.redniBroj));
+      console.log("brojac spolja:", typeof brojac);
+      t1.redniBroj = 999;
+      console.log("posle pokusaja upisa u redniBroj:", t1.redniBroj);
+
+      console.log("=== dozvoljene vrednosti ===");
+      try {
+        new Transakcija("265-0001", "Greska", "izmisljen", "2026-08-04", "u korist", 1);
+      } catch (g) {
+        console.log("status 'izmisljen' →", g.message);
+      }
+      try {
+        new Transakcija("265-0001", "Greska", "realizovana", "2026-08-04", "u dobit", 1);
+      } catch (g) {
+        console.log("tip 'u dobit'      →", g.message);
+      }
+      console.log("spiskovi spolja:", typeof STATUSI, "/", typeof TIPOVI, "— u IIFE, nedostupni");
+
+      const t5 = new Transakcija("265-0003", "Provera brojaca", "realizovana", "2026-09-10", "u korist", 1);
+      console.log("sledeci redni broj:", t5.redniBroj, "— dva neuspela pokusaja nisu potrosila broj");
+
+      console.log("=== knjiga i izvedeno stanje ===");
+      const k0 = new GlavnaKnjiga("Merkur doo", "21456789", "108456789");
+      const k1 = k0.dodajTransakciju(t1);
+      const k2 = k1.dodajTransakciju(t2);
+      const k3 = k2.dodajTransakciju(t3);
+      const k4 = k3.dodajTransakciju(t4);
+
+      console.log(k4.naziv, "| mb:", k4.maticniBroj, "| pib:", k4.pib);
+      console.log("transakcije:", k4.transakcije.map((t) => t.opis));
+      console.log("stanje:", k4.stanje, "= 120000 - 45000 - 18000");
+
+      k4.transakcije.push(t1);
+      console.log("posle spoljnog push-a:", k4.transakcije.length, "— geter vraca kopiju");
+
+      console.log("=== metode ne mutiraju original ===");
+      const dodata = k4.dodajTransakciju(
+        new Transakcija("265-0001", "Kamata", "realizovana", "2026-09-05", "u korist", 4000),
+      );
+      const uklonjena = k4.ukloniTransakciju(t2.redniBroj);
+
+      console.log("posle dodavanja: ", dodata.transakcije.map((t) => t.opis), "| stanje:", dodata.stanje);
+      console.log("posle uklanjanja:", uklonjena.transakcije.map((t) => t.opis), "| stanje:", uklonjena.stanje);
+      console.log("original:        ", k4.transakcije.map((t) => t.opis), "| stanje:", k4.stanje);
+
+      console.log("=== istorija ===");
+      console.log("k4.prethodna === k3:", k4.prethodna === k3);
+      console.log("broj verzija:", istorija(k4).length);
+      console.log("stanje po verzijama:", istorija(k4).map((k) => k.stanje));
+
+      console.log("=== druga knjiga, nezavisna ===");
+      const vega = ["Prodaja usluga|realizovana|u korist|150000", "Plate|realizovana|na teret|95000"]
+        .map((red) => red.split("|"))
+        .reduce(
+          (knjiga, [opis, status, tip, iznos]) =>
+            knjiga.dodajTransakciju(
+              new Transakcija("170-9999", opis, status, "2026-08-10", tip, Number(iznos)),
+            ),
+          new GlavnaKnjiga("Vega ad", "20099887", "105566778"),
+        );
+
+      console.log(vega.naziv, "| stanje:", vega.stanje, "| verzija:", istorija(vega).length);
+
+      console.log("=== pretraga ===");
+      console.log("realizovane:         ", pretraga([realizovane], k4).map((t) => t.opis));
+      console.log("nerealizovane:       ", pretraga([nerealizovane], k4).map((t) => t.opis));
+      console.log("uKorist:             ", pretraga([uKorist], k4).map((t) => t.opis));
+      console.log("realizovane na teret:", pretraga([realizovane, naTeret], k4).map((t) => t.opis));
+      console.log("preko 50000:         ", pretraga([preko(50000)], k4).map((t) => t.opis));
+      console.log("sa racuna 265-0002:  ", pretraga([saRacuna("265-0002")], k4).map((t) => t.opis));
+      console.log("bez kriterijuma:     ", pretraga([], k4).map((t) => t.opis));
+
+      console.log("=== opoziv ===");
+      const opozvana = opoziv(k4, 2);
+
+      console.log("verzija 2 je imala:", istorija(k4)[2].transakcije.map((t) => t.opis));
+      console.log("opozvana sadrzi:", opozvana.transakcije.map((t) => t.opis + " (" + t.status + ")"));
+      console.log("stanje opozvane:", opozvana.stanje, "| stanje verzije 2:", istorija(k4)[2].stanje);
+      console.log("istorija se nastavlja:", istorija(opozvana).length, "verzija");
+
+      console.log("=== opoziv nista nije promenio ===");
+      console.log("k4:", k4.transakcije.map((t) => t.opis + " (" + t.status + ")"));
+      console.log("t3.status:", t3.status, "| t4.status:", t4.status);
+      console.log("stornirane u opozvanoj:", pretraga([stornirane], opozvana).map((t) => t.opis));
+    </script>
+  </body>
+</html>

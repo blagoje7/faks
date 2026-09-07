@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="sr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kolokvijum I — najprostije rešenje (bez opoziva)</title>
+  </head>
+  <body>
+    <script>
+      // ═══════════════════════════════════════════════════════════════
+      // Kolokvijum I — najprostije rešenje koje ispunjava zahteve
+      // (bez funkcije opoziv)
+      //
+      // Rezultat se vidi u konzoli pregledača (F12 → Console).
+      // ═══════════════════════════════════════════════════════════════
+
+
+      // ── Transakcija ────────────────────────────────────────────────
+      // Redni broj je privatni statički atribut: brojac živi u IIFE-u,
+      // pa postoji jedan za ceo tip i nedostupan je spolja.
+
+      const Transakcija = (() => {
+          let brojac = 1;
+
+          return (brojRacuna, opis, status, datum, tip, iznos) => ({
+              redniBroj: brojac++,
+              brojRacuna, opis, status, datum, tip, iznos
+          });
+      })();
+
+
+      // ── GlavnaKnjiga ───────────────────────────────────────────────
+      // Metode ne menjaju ovu knjigu nego prave novu, i novoj prosleđuju
+      // ovu kao `prethodna` — otud istorija izmena.
+
+      const GlavnaKnjiga = (naziv, maticniBroj, pib, transakcije = [], prethodna = null) => {
+          const t = [...transakcije];
+
+          const knjiga = {
+              naziv, maticniBroj, pib, prethodna,
+              transakcije: t,
+
+              // izvedeni atribut: razlika suma realizovanih u korist i na teret
+              get stanje() {
+                  return t.reduce((s, x) =>
+                      x.status !== "realizovana" ? s :
+                      x.tip === "u korist"       ? s + x.iznos
+                                                 : s - x.iznos, 0);
+              },
+
+              dodajTransakciju:  tr => GlavnaKnjiga(naziv, maticniBroj, pib, [...t, tr], knjiga),
+              ukloniTransakciju: rb => GlavnaKnjiga(naziv, maticniBroj, pib,
+                                                    t.filter(x => x.redniBroj !== rb), knjiga)
+          };
+
+          return knjiga;
+      };
+
+
+      // ── pretraga ───────────────────────────────────────────────────
+      // Kriterijumi se primenjuju redom kojim su navedeni: izlaz jednog
+      // filtera je ulaz sledećeg.
+
+      const pretraga = (kriterijumi, knjiga) =>
+          kriterijumi.reduce((niz, kriterijum) => niz.filter(kriterijum), [...knjiga.transakcije]);
+
+      // kriterijumi su obične predikatske funkcije
+      const realizovane = t => t.status === "realizovana";
+      const uKorist     = t => t.tip === "u korist";
+      const naTeret     = t => t.tip === "na teret";
+      const preko       = granica => t => t.iznos > granica;
+
+
+      // ═══════════════════════════════════════════════════════════════
+      // Testiranje
+      // ═══════════════════════════════════════════════════════════════
+
+      const t1 = Transakcija("265-0001", "Uplata kupca",   "realizovana",   "2026-08-01", "u korist", 120000);
+      const t2 = Transakcija("265-0001", "Zakup prostora", "realizovana",   "2026-08-03", "na teret",  45000);
+      const t3 = Transakcija("265-0001", "Struja",         "realizovana",   "2026-08-06", "na teret",  18000);
+      const t4 = Transakcija("265-0002", "Nabavka robe",   "nerealizovana", "2026-09-01", "na teret",  90000);
+
+      console.log("=== transakcije ===");
+      console.log(t1);
+      console.log("redni brojevi:", t1.redniBroj, t2.redniBroj, t3.redniBroj, t4.redniBroj);
+      console.log("brojac spolja:", typeof brojac);
+
+      console.log("\n=== prva knjiga ===");
+      const k0 = GlavnaKnjiga("Merkur doo", "21456789", "108456789");
+      const k1 = k0.dodajTransakciju(t1);
+      const k2 = k1.dodajTransakciju(t2);
+      const k3 = k2.dodajTransakciju(t3);
+      const k4 = k3.dodajTransakciju(t4);
+
+      console.log("naziv:", k4.naziv, "| mb:", k4.maticniBroj, "| pib:", k4.pib);
+      console.log("transakcije:", k4.transakcije.map(x => x.opis));
+      console.log("stanje:", k4.stanje, "= 120000 - 45000 - 18000");
+
+      console.log("\n=== metode ne menjaju original ===");
+      const dodata    = k4.dodajTransakciju(Transakcija("265-0001", "Kamata", "realizovana", "2026-09-05", "u korist", 4000));
+      const uklonjena = k4.ukloniTransakciju(t2.redniBroj);
+
+      console.log("posle dodavanja: ", dodata.transakcije.map(x => x.opis),    "| stanje:", dodata.stanje);
+      console.log("posle uklanjanja:", uklonjena.transakcije.map(x => x.opis), "| stanje:", uklonjena.stanje);
+      console.log("original:        ", k4.transakcije.map(x => x.opis),        "| stanje:", k4.stanje);
+      console.log("nove instance:", k4 !== dodata, k4 !== uklonjena);
+
+      console.log("\n=== istorija: referenca na prethodnu ===");
+      console.log("k4.prethodna === k3:", k4.prethodna === k3);
+      console.log("k3.prethodna === k2:", k3.prethodna === k2);
+      console.log("k0.prethodna:", k0.prethodna);
+      console.log("stanja unazad:", k4.stanje, k4.prethodna.stanje, k4.prethodna.prethodna.stanje);
+
+      console.log("\n=== druga knjiga, nezavisna ===");
+      const v0 = GlavnaKnjiga("Vega ad", "20099887", "105566778");
+      const v1 = v0.dodajTransakciju(Transakcija("170-9999", "Prodaja usluga", "realizovana", "2026-08-10", "u korist", 150000));
+      const v2 = v1.dodajTransakciju(Transakcija("170-9999", "Plate",          "realizovana", "2026-08-11", "na teret",  95000));
+
+      console.log(v2.naziv, "| transakcije:", v2.transakcije.map(x => x.opis), "| stanje:", v2.stanje);
+      console.log(k4.naziv, "| stanje:", k4.stanje);
+
+      console.log("\n=== pretraga ===");
+      console.log("realizovane:            ", pretraga([realizovane], k4).map(x => x.opis));
+      console.log("na teret:               ", pretraga([naTeret], k4).map(x => x.opis));
+      console.log("realizovane na teret:   ", pretraga([realizovane, naTeret], k4).map(x => x.opis));
+      console.log("preko 50000:            ", pretraga([preko(50000)], k4).map(x => x.opis));
+      console.log("realizovane u korist:   ", pretraga([realizovane, uKorist], k4).map(x => x.opis));
+      console.log("bez kriterijuma:        ", pretraga([], k4).map(x => x.opis));
+    </script>
+  </body>
+</html>
