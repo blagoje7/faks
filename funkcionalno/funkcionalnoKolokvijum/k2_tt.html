@@ -53,7 +53,7 @@
 
       const izravnaj = function (zadaci) {
         return zadaci.flatMap((z) =>
-          typeof z[Symbol.iterator] === "function" ? [...z] : [z],
+          typeof z[Symbol.iterator] === "function" ? [...z] : [z]
         );
       };
 
@@ -66,7 +66,7 @@
           get() {
             return [...zadaci];
           },
-          enumerable: true,
+          enumerable: true
         });
 
         this[Symbol.iterator] = function* () {
@@ -123,7 +123,7 @@
         return new Task(zadatak.naziv, async function (...argumenti) {
           const pocetak = Date.now();
           const rezultat = await zadatak.execute(...argumenti);
-          console.log("   *", zadatak.naziv + ":", Date.now() - pocetak, "ms");
+          console.log("   ---", zadatak.naziv + ":", Date.now() - pocetak, "ms");
           return rezultat;
         });
       });
