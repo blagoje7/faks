@@ -108,7 +108,7 @@
           return new Workflow(
             naziv,
             autor,
-            zadaci.reduce(poredjaj(...transdjuseri)(sakupi), []),
+            zadaci.reduce(poredjaj(...transdjuseri)(sakupi), [])
           );
         };
       };
@@ -143,15 +143,25 @@
     const ravan    = glavni.flat();
       
     console.log("task:", parsiraj.naziv, "|", typeof parsiraj.definicija);
+
     console.log("asinhron:", parsiraj.execute("1") instanceof Promise);
+
     console.log("workflow:", priprema.naziv, priprema.autor, priprema.zadaci.length);
+
     console.log("iterabilan:", [...priprema].map((z) => z.naziv));
+
     console.log("flat:", [...ravan].map((z) => z.naziv));
+
     console.log("filter:", [...ravan.filter((z) => z.naziv !== "zbir")].map((z) => z.naziv));
+
     console.log("map:", [...ravan.map((z) => new Task(z.naziv.toUpperCase(), z.definicija))].map((z) => z.naziv));
+
     console.log("flatMap:", [...priprema.flatMap((z) => new Workflow("p", "B", [z, new Task("kroz", (x) => x)]))].map((z) => z.naziv));
+
     console.log("transduce:", ravan.transduce(preslikaj((z) => z.naziv)));
+
     console.log("kompozicija:", ravan.transduce(poredjaj(izdvoj((z) => z.naziv !== "zbir"), preslikaj((z) => z.naziv))));
+    
     console.log("original netaknut:", [...ravan].map((z) => z.naziv));
 
     zbir.execute([1, 2, 3])

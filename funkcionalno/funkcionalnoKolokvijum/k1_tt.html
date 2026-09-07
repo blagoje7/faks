@@ -13,7 +13,6 @@
         const TIPOVI = ["na teret", "u korist"];
 
         return function (brojRacuna, opis, status, datum, tip, iznos) {
-          // provera pre brojaca — neuspeo pokusaj ne trosi redni broj
           if (!STATUSI.includes(status)) {
             throw new Error("Nedozvoljen status: " + status);
           }
@@ -46,8 +45,9 @@
         maticniBroj,
         pib,
         transakcije = [],
-        prethodna = null,
-      ) {
+        prethodna = null
+      ) 
+      {
         this.naziv = naziv;
         this.maticniBroj = maticniBroj;
         this.pib = pib;
@@ -66,8 +66,7 @@
               .filter((t) => t.status === "realizovana")
               .reduce(
                 (acc, t) =>
-                  t.tip === "u korist" ? acc + t.iznos : acc - t.iznos,
-                0,
+                  t.tip === "u korist" ? acc + t.iznos : acc - t.iznos, 0
               );
           },
           enumerable: true,
@@ -89,7 +88,7 @@
             maticniBroj,
             pib,
             transakcije.filter((t) => t.redniBroj !== redniBroj),
-            this,
+            this
           );
         };
       };
@@ -103,10 +102,7 @@
       };
 
       const pretraga = function (kriterijumi, knjiga) {
-        return kriterijumi.reduce(
-          (niz, k) => niz.filter(k),
-          knjiga.transakcije,
-        );
+        return kriterijumi.reduce((niz, k) => niz.filter(k), knjiga.transakcije);
       };
 
       const realizovane = (t) => t.status === "realizovana";
@@ -123,23 +119,21 @@
           .filter((v, i) => i > redniBrojUIstoriji) 
           .reduce((niz, v) => [...niz, ...v.transakcije], []) 
           .filter((t) => brojeviStare.indexOf(t.redniBroj) === -1) 
-          .filter(
-            (t, i, niz) =>
+          .filter((t, i, niz) =>
               niz.findIndex((x) => x.redniBroj === t.redniBroj) === i,
-          ) 
-          .map(stornirana); 
+          ).map(stornirana); 
 
         return new GlavnaKnjiga(
           knjiga.naziv,
           knjiga.maticniBroj,
           knjiga.pib,
           [...stara.transakcije, ...nastaleKasnije],
-          knjiga,
+          knjiga
         );
       };
 
 
-      //=====
+      ////////////
 
         const t1 = new Transakcija("265-1", "Uplata",  "realizovana",   "2026-08-01", "u korist", 120000);
         const t2 = new Transakcija("265-1", "Zakup",   "realizovana",   "2026-08-03", "na teret",  45000);
@@ -152,15 +146,24 @@
         const op = opoziv(k3, 1);
 
         console.log("redni brojevi:", [t1.redniBroj, t2.redniBroj, t3.redniBroj], "| brojac spolja:", typeof brojac);
+
         try { new Transakcija("265-1", "X", "izmisljen", "2026-08-04", "u korist", 1); }
         catch (g) { console.log("2 odbijeno:", g.message); }
+        
         console.log("knjiga:", k3.naziv, k3.maticniBroj, k3.pib, "|", k3.transakcije.map((t) => t.opis));
+        
         console.log("stanje:", k3.stanje, "| prazna:", k0.stanje);
-        console.log("dodaj -> ukloni:", k2.transakcije.length, k3.transakcije.length, k3.ukloniTransakciju(t2.redniBroj).transakcije.length, "| original ostao:", k3.transakcije.length, "| nove instance:", k2 !== k3);
+        
+        console.log("dodaj u ukloni:", k2.transakcije.length, k3.transakcije.length, k3.ukloniTransakciju(t2.redniBroj).transakcije.length, "| original ostao:", k3.transakcije.length, "| nove instance:", k2 !== k3);
+        
         console.log("prethodna:", k3.prethodna === k2, "| istorija:", istorija(k3).map((k) => k.stanje));
+        
         console.log("pretraga:", pretraga([realizovane], k3).map((t) => t.opis), "| dva:", pretraga([realizovane, naTeret], k3).map((t) => t.opis), "| preko 50000:", pretraga([preko(50000)], k3).map((t) => t.opis));
+        
         console.log("opoziv:", op.transakcije.map((t) => t.opis + "(" + t.status + ")"));
+        
         console.log("stanje:", op.stanje, "= verzija 1:", istorija(k3)[1].stanje, "| originali:", t2.status, t3.status);
+
     </script>
   </body>
 </html>
