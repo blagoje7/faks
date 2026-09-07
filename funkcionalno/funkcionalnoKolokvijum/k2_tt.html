@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+
+      const Task = function (naziv, definicija) {
+        this.naziv = naziv;
+        this.definicija = definicija;
+
+        this.execute = async function (...argumenti) {
+          return definicija(...argumenti);
+        };
+      };
+
+      const sakupi = function (niz, element) {
+        return [...niz, element];
+      };
+
+      const prebroj = function (broj) {
+        return broj + 1;
+      };
+
+      const preslikaj = function (posao) {
+        return function (sledeci) {
+          return function (stanje, element) {
+            return sledeci(stanje, posao(element));
+          };
+        };
+      };
+
+      const izdvoj = function (provera) {
+        return function (sledeci) {
+          return function (stanje, element) {
+            return provera(element) ? sledeci(stanje, element) : stanje;
+          };
+        };
+      };
+
+      const poredjaj = function (...transdjuseri) {
+        return function (kraj) {
+          let veza = kraj;
+          for (let i = transdjuseri.length - 1; i >= 0; i--) {
+            veza = transdjuseri[i](veza);
+          }
+          return veza;
+        };
+      };
+
+
+      const izravnaj = function (zadaci) {
+        return zadaci.flatMap((z) =>
+          typeof z[Symbol.iterator] === "function" ? [...z] : [z],
+        );
+      };
+
+
+      const Workflow = function (naziv, autor, zadaci = []) {
+        this.naziv = naziv;
+        this.autor = autor;
+
+        Object.defineProperty(this, "zadaci", {
+          get() {
+            return [...zadaci];
+          },
+          enumerable: true,
+        });
+
+        this[Symbol.iterator] = function* () {
+          for (const zadatak of zadaci) {
+            yield zadatak;
+          }
+        };
+
+        this.map = function (f) {
+          return new Workflow(naziv, autor, zadaci.map(f));
+        };
+
+        this.filter = function (p) {
+          return new Workflow(naziv, autor, zadaci.filter(p));
+        };
+
+        this.flat = function () {
+          return new Workflow(naziv, autor, izravnaj(zadaci));
+        };
+
+        this.flatMap = function (f) {
+          return new Workflow(naziv, autor, izravnaj(zadaci.map(f)));
+        };
+
+        this.execute = async function (...argumenti) {
+          let ulaz = argumenti;
+          for (const zadatak of zadaci) {
+            ulaz = [await zadatak.execute(...ulaz)];
+          }
+          return ulaz[0];
+        };
+
+        this.transduce = function (transdjuser, kraj = sakupi, pocetno = []) {
+          return zadaci.reduce(transdjuser(kraj), pocetno);
+        };
+
+        this.primeni = function (...transdjuseri) {
+          return new Workflow(
+            naziv,
+            autor,
+            zadaci.reduce(poredjaj(...transdjuseri)(sakupi), []),
+          );
+        };
+      };
+
+      const saIspisom = preslikaj(function (zadatak) {
+        return new Task(zadatak.naziv, async function (...argumenti) {
+          console.log("   ->", zadatak.naziv, "ulaz:", ...argumenti);
+          const rezultat = await zadatak.execute(...argumenti);
+          console.log("   <-", zadatak.naziv, "izlaz:", rezultat);
+          return rezultat;
+        });
+      });
+
+      const saMerenjem = preslikaj(function (zadatak) {
+        return new Task(zadatak.naziv, async function (...argumenti) {
+          const pocetak = Date.now();
+          const rezultat = await zadatak.execute(...argumenti);
+          console.log("   *", zadatak.naziv + ":", Date.now() - pocetak, "ms");
+          return rezultat;
+        });
+      });
+
+    const parsiraj   = new Task("parsiraj",   (t) => t.split(",").map(Number));
+    const bezNula    = new Task("bezNula",    (n) => n.filter((x) => x !== 0));
+    const zbir       = new Task("zbir",       (n) => n.reduce((a, x) => a + x, 0));
+    const formatiraj = new Task("formatiraj", (x) => "ukupno: " + x);
+    const saberi     = new Task("saberi",     (a, b, c) => a + b + c);
+    const puta10     = new Task("puta10",     (x) => x * 10);
+
+    const priprema = new Workflow("priprema", "B", [parsiraj, bezNula]);
+    const glavni   = new Workflow("glavni",   "B", [priprema, zbir, formatiraj]);
+    const ravan    = glavni.flat();
+      
+    console.log("task:", parsiraj.naziv, "|", typeof parsiraj.definicija);
+    console.log("asinhron:", parsiraj.execute("1") instanceof Promise);
+    console.log("workflow:", priprema.naziv, priprema.autor, priprema.zadaci.length);
+    console.log("iterabilan:", [...priprema].map((z) => z.naziv));
+    console.log("flat:", [...ravan].map((z) => z.naziv));
+    console.log("filter:", [...ravan.filter((z) => z.naziv !== "zbir")].map((z) => z.naziv));
+    console.log("map:", [...ravan.map((z) => new Task(z.naziv.toUpperCase(), z.definicija))].map((z) => z.naziv));
+    console.log("flatMap:", [...priprema.flatMap((z) => new Workflow("p", "B", [z, new Task("kroz", (x) => x)]))].map((z) => z.naziv));
+    console.log("transduce:", ravan.transduce(preslikaj((z) => z.naziv)));
+    console.log("kompozicija:", ravan.transduce(poredjaj(izdvoj((z) => z.naziv !== "zbir"), preslikaj((z) => z.naziv))));
+    console.log("original netaknut:", [...ravan].map((z) => z.naziv));
+
+    zbir.execute([1, 2, 3])
+        .then((r) => console.log("execute = rezultat definicije:", r))
+        .then(() => saberi.execute(1, 2, 3))
+        .then((r) => console.log("proizvoljan broj argumenata:", r))
+        .then(() => ravan.execute("1,0,2,3"))
+        .then((r) => console.log("execute lancano:", r))
+        .then(() => new Workflow("t", "B", [saberi, puta10]).execute(2, 3, 5))
+        .then((r) => console.log("prvi dobija sve argumente:", r))
+        .then(() => console.log("primeni(saIspisom):"))
+        .then(() => ravan.primeni(saIspisom).execute("1,0,2,3"))
+        .then((r) => console.log("   rezultat:", r));
+    </script>
+</body>
+</html>
