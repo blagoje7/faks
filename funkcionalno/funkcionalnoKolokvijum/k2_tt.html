@@ -7,7 +7,6 @@
 </head>
 <body>
     <script>
-
       const Task = function (naziv, definicija) {
         this.naziv = naziv;
         this.definicija = definicija;
@@ -71,9 +70,7 @@
         });
 
         this[Symbol.iterator] = function* () {
-          for (const zadatak of zadaci) {
-            yield zadatak;
-          }
+          yield* zadaci;
         };
 
         this.map = function (f) {
@@ -161,7 +158,7 @@
     console.log("transduce:", ravan.transduce(preslikaj((z) => z.naziv)));
 
     console.log("kompozicija:", ravan.transduce(poredjaj(izdvoj((z) => z.naziv !== "zbir"), preslikaj((z) => z.naziv))));
-    
+
     console.log("original netaknut:", [...ravan].map((z) => z.naziv));
 
     zbir.execute([1, 2, 3])
